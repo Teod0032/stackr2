@@ -2,8 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Progressive Overload App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Stackr</title>
+
+    <link rel="apple-touch-icon" href="icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Stackr">
+    <link rel="manifest" href="manifest.json">
+
     <style>
         :root {
             --background: #0F1333;
@@ -24,12 +31,13 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
+            overflow: hidden; /* Prevent bounce scrolling */
         }
 
         /* Layout */
-        #app { display: flex; flex-direction: column; height: 100%; padding: 20px; }
+        #app { display: flex; flex-direction: column; height: 100%; padding: 20px; box-sizing: border-box; }
         .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; }
-        .scroll-area { flex: 1; overflow-y: auto; padding-bottom: 80px; }
+        .scroll-area { flex: 1; overflow-y: auto; padding-bottom: 80px; -webkit-overflow-scrolling: touch; }
         
         /* Card Styles */
         .card { 
@@ -47,13 +55,14 @@
 
         /* Controls */
         button { border: none; cursor: pointer; border-radius: 20px; padding: 10px 20px; font-weight: bold; }
-        .fab { position: fixed; bottom: 30px; width: 60px; height: 60px; border-radius: 30px; font-size: 24px; color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .fab { position: fixed; bottom: 30px; width: 60px; height: 60px; border-radius: 30px; font-size: 24px; color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 10; }
         .fab-right { right: 30px; }
         .fab-left { left: 30px; }
 
         /* Modal */
-        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: flex-end; }
-        .modal-content { background: var(--background); width: 100%; padding: 30px; border-radius: 30px 30px 0 0; }
+        dialog { border: none; padding: 0; background: transparent; width: 100%; height: 100%; max-width: none; }
+        dialog::backdrop { background: rgba(0,0,0,0.8); }
+        .modal-content { background: var(--background); width: 100%; padding: 30px; border-radius: 30px 30px 0 0; box-sizing: border-box; position: absolute; bottom: 0; }
         input { width: 100%; padding: 15px; border-radius: 12px; border: none; background: var(--inputBg); color: white; margin-bottom: 10px; box-sizing: border-box; }
     </style>
 </head>
@@ -67,7 +76,7 @@
     </div>
     <div id="workoutList" class="scroll-area"></div>
     <button class="fab fab-left" id="checkBtn" onclick="markComplete()">✓</button>
-    <button class="fab fab-right" onclick="openModal()">+</button>
+    <button class="fab fab-right" style="background:var(--accent)" onclick="openModal()">+</button>
 </div>
 
 <dialog id="modal">
@@ -76,22 +85,20 @@
         <input type="text" id="exName" placeholder="Exercise Name">
         <input type="number" id="exWeight" placeholder="Weight (kg)">
         <input type="number" id="exReps" placeholder="Reps">
-        <div style="display: flex; gap: 10px;">
-            <button onclick="closeModal()">Cancel</button>
-            <button id="saveBtn" onclick="saveExercise()" style="flex:1; background: var(--accent);">Save</button>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button onclick="closeModal()" style="flex:1">Cancel</button>
+            <button id="saveBtn" onclick="saveExercise()" style="flex:1; background: var(--accent); color: white;">Save</button>
         </div>
     </div>
 </dialog>
 
 <script>
-    // --- State ---
     let workouts = JSON.parse(localStorage.getItem('@stackr_workouts_v1')) || [
         { id: 'w1', title: "Push Day", color: '#F28C42', exercises: [] },
         { id: 'w2', title: "Pull Day", color: '#42D4F2', exercises: [] }
     ];
     let currentIndex = 0;
 
-    // --- Logic ---
     function render() {
         const active = workouts[currentIndex];
         document.getElementById('workoutTitle').innerText = active.title;
@@ -129,23 +136,20 @@
             workouts[currentIndex].exercises.push({ id: Date.now(), name, weight, reps });
             render();
             closeModal();
+            document.getElementById('exName').value = '';
         }
     }
 
     function increment(id) {
         const ex = workouts[currentIndex].exercises.find(e => e.id === id);
         if (ex) {
-            ex.weight = parseInt(ex.weight) + 2.5;
+            ex.weight = parseFloat(ex.weight) + 2.5;
             render();
         }
     }
 
-    function markComplete() {
-        alert("Workout Logged!");
-        // Add logic for recovery dates here
-    }
+    function markComplete() { alert("Workout Logged!"); }
 
-    // Initialize
     render();
 </script>
 </body>
