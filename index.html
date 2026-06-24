@@ -1,158 +1,557 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="apple-touch-icon" href="icon.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Stackr</title>
+    
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="My Workout App">
+    <meta name="theme-color" content="#0F1333">
+
+    <link rel="icon" type="image/png" href="./icon.png">
+    <link rel="apple-touch-icon" href="./icon.png">
+    <link rel="manifest" id="my-manifest">
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     
-    <link rel="manifest" href="manifest.json">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Progressive Overload App</title>
     <style>
-        :root {
-            --background: #0F1333;
-            --cardBgLeft: #E6E6E6;
-            --cardBgRight: #D1D1D1;
-            --accent: #F28C42;
-            --textDark: #111534;
-            --textLight: #FFFFFF;
-            --inputBg: #2A2E4D;
-            --danger: #FF4444;
+        body { 
+            background-color: #0F1333; 
+            color: white; 
+            -webkit-tap-highlight-color: transparent; 
+            user-select: none; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            transition: background-color 0.5s ease;
         }
-
-        body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--background);
-            color: var(--textLight);
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        /* Layout */
-        #app { display: flex; flex-direction: column; height: 100%; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; }
-        .scroll-area { flex: 1; overflow-y: auto; padding-bottom: 80px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        input:focus { outline: none; }
         
-        /* Card Styles */
-        .card { 
-            position: relative; width: 100%; height: 90px; margin-bottom: 35px;
-            display: flex; border-radius: 20px; overflow: hidden;
-        }
-        .card-left { flex: 0.55; background: var(--cardBgLeft); clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%); display: flex; align-items: center; padding-left: 20px; color: var(--textDark); font-weight: bold; }
-        .card-right { flex: 0.45; background: var(--cardBgRight); clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%); display: flex; align-items: center; justify-content: center; color: var(--textDark); cursor: pointer; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
-        .badge { 
-            position: absolute; top: -10px; right: 5px; width: 50px; height: 50px; 
-            border-radius: 50%; border: 4px solid var(--background);
-            display: flex; align-items: center; justify-content: center; font-weight: bold;
-        }
-
-        /* Controls */
-        button { border: none; cursor: pointer; border-radius: 20px; padding: 10px 20px; font-weight: bold; }
-        .fab { position: fixed; bottom: 30px; width: 60px; height: 60px; border-radius: 30px; font-size: 24px; color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        .fab-right { right: 30px; }
-        .fab-left { left: 30px; }
-
-        /* Modal */
-        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: flex-end; }
-        .modal-content { background: var(--background); width: 100%; padding: 30px; border-radius: 30px 30px 0 0; }
-        input { width: 100%; padding: 15px; border-radius: 12px; border: none; background: var(--inputBg); color: white; margin-bottom: 10px; box-sizing: border-box; }
+        .animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-slide-down { animation: slideDown 0.2s ease-out forwards; }
+        .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
     </style>
+
+    <script>
+        Babel.registerPreset("react-classic", {
+            presets: [
+                [Babel.availablePresets["react"], { runtime: "classic" }]
+            ]
+        });
+    </script>
 </head>
 <body>
+    <div id="root"></div>
 
-<div id="app">
-    <div class="header">
-        <button id="prevBtn" onclick="changeWorkout(-1)">◀</button>
-        <h2 id="workoutTitle">Workout</h2>
-        <button id="nextBtn" onclick="changeWorkout(1)">▶</button>
-    </div>
-    <div id="workoutList" class="scroll-area"></div>
-    <button class="fab fab-left" id="checkBtn" onclick="markComplete()">✓</button>
-    <button class="fab fab-right" onclick="openModal()">+</button>
-</div>
-
-<dialog id="modal">
-    <div class="modal-content">
-        <h3 id="modalTitle">Add Exercise</h3>
-        <input type="text" id="exName" placeholder="Exercise Name">
-        <input type="number" id="exWeight" placeholder="Weight (kg)">
-        <input type="number" id="exReps" placeholder="Reps">
-        <div style="display: flex; gap: 10px;">
-            <button onclick="closeModal()">Cancel</button>
-            <button id="saveBtn" onclick="saveExercise()" style="flex:1; background: var(--accent);">Save</button>
-        </div>
-    </div>
-</dialog>
-
-<script>
-    // --- State ---
-    let workouts = JSON.parse(localStorage.getItem('@stackr_workouts_v1')) || [
-        { id: 'w1', title: "Push Day", color: '#F28C42', exercises: [] },
-        { id: 'w2', title: "Pull Day", color: '#42D4F2', exercises: [] }
-    ];
-    let currentIndex = 0;
-
-    // --- Logic ---
-    function render() {
-        const active = workouts[currentIndex];
-        document.getElementById('workoutTitle').innerText = active.title;
-        document.body.style.backgroundColor = active.color;
-        
-        const list = document.getElementById('workoutList');
-        list.innerHTML = '';
-        active.exercises.forEach(ex => {
-            const el = document.createElement('div');
-            el.className = 'card';
-            el.innerHTML = `
-                <div class="card-left">${ex.name}</div>
-                <div class="card-right" onclick="increment(${ex.id})">${ex.weight} kg</div>
-                <div class="badge" style="background:${active.color}">${ex.reps}</div>
-            `;
-            list.appendChild(el);
+    <script>
+        // Generate manifest dynamically for PWA support
+        window.addEventListener('DOMContentLoaded', () => {
+            const baseUrl = new URL('.', window.location.href).href;
+            const manifest = {
+                "name": "Stackr",
+                "short_name": "Stackr",
+                "start_url": baseUrl,
+                "display": "standalone",
+                "background_color": "#0F1333",
+                "theme_color": "#0F1333",
+                "orientation": "portrait",
+                "icons": [
+                    { "src": baseUrl + "icon.png", "sizes": "192x192", "type": "image/png" },
+                    { "src": baseUrl + "icon.png", "sizes": "512x512", "type": "image/png" }
+                ]
+            };
+            const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+            const manifestLink = document.getElementById('my-manifest');
+            if (manifestLink) {
+                manifestLink.setAttribute('href', URL.createObjectURL(blob));
+            }
         });
-        localStorage.setItem('@stackr_workouts_v1', JSON.stringify(workouts));
-    }
+    </script>
 
-    function changeWorkout(dir) {
-        currentIndex = Math.max(0, Math.min(workouts.length - 1, currentIndex + dir));
-        render();
-    }
-
-    function openModal() { document.getElementById('modal').showModal(); }
-    function closeModal() { document.getElementById('modal').close(); }
-
-    function saveExercise() {
-        const name = document.getElementById('exName').value;
-        const weight = document.getElementById('exWeight').value;
-        const reps = document.getElementById('exReps').value;
+    <script type="text/babel" data-presets="react-classic">
+        const { useState, useEffect, useRef } = React;
         
-        if (name) {
-            workouts[currentIndex].exercises.push({ id: Date.now(), name, weight, reps });
-            render();
-            closeModal();
-        }
-    }
+        const COLORS = {
+            background: '#0F1333', cardBgLeft: '#E6E6E6', cardBgRight: '#D1D1D1',
+            accent: '#F28C42', textDark: '#111534', textLight: '#FFFFFF',
+            inputBg: '#2A2E4D', menuBg: '#1A1F4B', danger: '#FF4444', selectorBg: '#E0E0E0',     
+        };
 
-    function increment(id) {
-        const ex = workouts[currentIndex].exercises.find(e => e.id === id);
-        if (ex) {
-            ex.weight = parseInt(ex.weight) + 2.5;
-            render();
-        }
-    }
+        const WORKOUT_COLORS = ['#F28C42', '#FF5C8D', '#9B5CFF', '#42D4F2', '#5CFF87', '#FFD65C'];
+        const STORAGE_KEY = '@stackr_workouts_v1';
+        const SETTINGS_STORAGE_KEY = '@stackr_recovery_settings_v1';
+        const SETTINGS_ENABLED_KEY = '@stackr_recovery_enabled_v1';
+        
+        const SCREEN_WIDTH = Math.min(window.innerWidth, 500);
+        const CARD_MARGIN = 20;
+        const CARD_WIDTH = SCREEN_WIDTH - (CARD_MARGIN * 2);
+        const CARD_HEIGHT = 90;
+        const SPLIT_PCT = 0.55; 
+        const SLANT = 30;       
+        const GAP_WIDTH = 8;    
 
-    function markComplete() {
-        alert("Workout Logged!");
-        // Add logic for recovery dates here
-    }
+        const INITIAL_WORKOUTS = [
+            { id: 'w1', title: "Push Day", color: '#F28C42', exercises: [ { id: 'e1', name: 'Bench Press', weight: '50', reps: '10', minReps: 8, maxReps: 12, isExpanded: false }, { id: 'e2', name: 'Incline Dumbbell', weight: '24', reps: '8', minReps: 10, maxReps: 15, isExpanded: false } ] },
+            { id: 'w2', title: "Pull Day", color: '#42D4F2', exercises: [{ id: 'e5', name: 'Deadlift', weight: '140', reps: '5', minReps: 5, maxReps: 8, isExpanded: false }] }
+        ];
 
-    // Initialize
-    render();
-</script>
+        // Hardcoded SVGs
+        const ICONS = {
+            'chevron-left': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>,
+            'chevron-right': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>,
+            'plus': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
+            'trash-2': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>,
+            'alert-triangle': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>,
+            'settings': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>,
+            'check-check': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/></svg>
+        };
+
+        const Icon = ({ name, size = 24, color = "currentColor", className = "" }) => (
+            <div style={{ width: size, height: size, color: color, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} className={className}>
+                {React.cloneElement(ICONS[name], { width: '100%', height: '100%' })}
+            </div>
+        );
+
+        const getRecoveryColor = (lastCompleted, cooldownDays = 8) => {
+            if (!lastCompleted) return COLORS.background;
+            
+            const now = Date.now();
+            const diffMs = now - lastCompleted;
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+            if (diffDays >= cooldownDays) return COLORS.background;
+            if (cooldownDays <= 2) return diffDays === 0 ? '#FF4444' : '#2ECC71';
+
+            const greenStep = Math.floor(cooldownDays * 0.75);
+            const yellowStep = Math.floor(cooldownDays * 0.375);
+
+            if (diffDays >= greenStep) return '#2ECC71'; 
+            if (diffDays >= yellowStep) return '#FFD700'; 
+            return '#FF4444'; 
+        };
+
+        const vibrate = (pattern = 10) => {
+            if (navigator.vibrate) navigator.vibrate(pattern);
+        };
+
+        const ToggleSwitch = ({ checked, onChange, activeColor }) => (
+            <div 
+                onClick={() => { vibrate(5); onChange(!checked); }}
+                className={`w-14 h-8 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300`}
+                style={{ backgroundColor: checked ? activeColor : '#3E436B' }}
+            >
+                <div className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 ${checked ? 'translate-x-6' : ''}`} />
+            </div>
+        );
+
+        const useLongPress = (callback = () => {}, ms = 500) => {
+            const [startLongPress, setStartLongPress] = useState(false);
+            useEffect(() => {
+                let timerId;
+                if (startLongPress) {
+                    timerId = setTimeout(() => { vibrate(50); callback(); }, ms);
+                } else {
+                    clearTimeout(timerId);
+                }
+                return () => clearTimeout(timerId);
+            }, [startLongPress]);
+
+            return {
+                onMouseDown: () => setStartLongPress(true),
+                onMouseUp: () => setStartLongPress(false),
+                onMouseLeave: () => setStartLongPress(false),
+                onTouchStart: () => setStartLongPress(true),
+                onTouchEnd: () => setStartLongPress(false),
+            };
+        };
+
+        const RepRangeSelector = ({ min, max, onRangeChange, color }) => {
+            const numbers = [4, 5, 6, 7, 8, 9, 10, 11, 12];
+            const stepWidthPct = 100 / numbers.length; 
+            const barLeftPosPct = ((min - 4) * stepWidthPct) + (stepWidthPct / 2);
+            const barRightPosPct = 100 - (((max - 4) * stepWidthPct) + (stepWidthPct / 2));
+
+            const handlePress = (num) => {
+                vibrate(10);
+                if (min !== max) onRangeChange(num, num); 
+                else { if (num < min) onRangeChange(num, max); else onRangeChange(min, num); }
+            };
+
+            return (
+                <div className="relative h-[50px] w-full bg-[#E0E0E0] rounded-[30px] flex items-center justify-center overflow-hidden">
+                    {min !== max && (
+                        <div style={{ position: 'absolute', height: '20px', backgroundColor: color, opacity: 0.5, left: `${barLeftPosPct}%`, right: `${barRightPosPct}%`, zIndex: 0 }}></div>
+                    )}
+                    <div className="flex w-full h-full z-10">
+                        {numbers.map((num) => {
+                            const isMin = num === min;
+                            const isMax = num === max;
+                            const isInRange = num > min && num < max;
+                            const isActive = isMin || isMax || isInRange;
+                            return (
+                                <div key={num} onClick={() => handlePress(num)} className="flex-1 h-full flex items-center justify-center relative cursor-pointer">
+                                    {(isMin || isMax) && (
+                                        <div style={{ position: 'absolute', width: '40px', height: '40px', backgroundColor: color, borderRadius: '50%', zIndex: -1 }}></div>
+                                    )}
+                                    <span style={{ color: (isMin || isMax) ? '#FFF' : (isInRange ? '#111534' : '#888'), fontWeight: isActive ? 'bold' : 'normal', fontSize: '16px' }}>{num}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            );
+        };
+
+        const ExerciseCard = ({ data, activeWorkout, currentBgColor, onEdit, onToggle, onUpdateStats }) => {
+            const longPressProps = useLongPress(() => onEdit(data));
+            const topSplitX = CARD_WIDTH * SPLIT_PCT;
+            const bottomSplitX = topSplitX + SLANT; 
+            const leftPath = `M 0 0 L ${topSplitX} 0 L ${bottomSplitX} ${CARD_HEIGHT} L 0 ${CARD_HEIGHT} Z`;
+            const rightPath = `M ${topSplitX + GAP_WIDTH} 0 L ${CARD_WIDTH} 0 L ${CARD_WIDTH} ${CARD_HEIGHT} L ${bottomSplitX + GAP_WIDTH} ${CARD_HEIGHT} Z`;
+
+            return (
+                <div className="relative mb-[35px] mx-auto" style={{ width: CARD_WIDTH }}>
+                    <div className="relative h-[90px] rounded-[20px] overflow-hidden shadow-lg">
+                        <svg width={CARD_WIDTH} height={CARD_HEIGHT} className="absolute inset-0">
+                            <path d={leftPath} fill={COLORS.cardBgLeft} />
+                            <path d={rightPath} fill={COLORS.cardBgRight} />
+                        </svg>
+                        <div className="absolute inset-0 flex">
+                            <div {...longPressProps} className="w-[55%] h-full flex items-center pl-[25px] cursor-pointer active:opacity-80">
+                                <span className="text-[#111534] text-[20px] font-bold truncate pr-2">{data.name}</span>
+                            </div>
+                            <div onClick={() => onToggle(data.id)} className="w-[45%] h-full flex flex-col items-center justify-center pl-[5px] cursor-pointer active:opacity-80">
+                                <span className="text-[#111534] text-[36px] font-bold leading-none">{data.weight}</span>
+                                <span className="text-[#111534] text-[16px] font-bold">Kg</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="absolute -top-[20px] -right-[6px] w-[55px] h-[55px] rounded-full flex items-center justify-center border-4 z-20 shadow-sm transition-colors duration-500" 
+                         style={{ backgroundColor: activeWorkout.color, borderColor: currentBgColor }}>
+                        <span className="text-white text-[20px] font-bold">{data.reps}</span>
+                    </div>
+                    {data.isExpanded && (
+                        <div className="mt-[15px] bg-[#1A1F4B] rounded-[20px] p-[15px] flex gap-[10px] animate-slide-down">
+                            <button onClick={() => onUpdateStats(data.id, 'reps', 1)} className="flex-1 bg-[#2A2E4D] py-3 px-4 rounded-[15px] flex justify-between items-center active:scale-95 transition-transform">
+                                <span className="text-white font-bold text-[16px]">1 Rep</span>
+                                <Icon name="plus" size={20} color="white" />
+                            </button>
+                            <button onClick={() => onUpdateStats(data.id, 'weight', 2.5)} className="flex-1 py-3 px-4 rounded-[15px] flex justify-between items-center active:scale-95 transition-transform" style={{ backgroundColor: activeWorkout.color }}>
+                                <span className="text-[#111534] font-bold text-[16px]">2,5 Kg</span>
+                                <Icon name="plus" size={20} color="#111534" />
+                            </button>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [workouts, setWorkouts] = useState(INITIAL_WORKOUTS);
+            const [cooldownDays, setCooldownDays] = useState(8); 
+            const [isCooldownEnabled, setIsCooldownEnabled] = useState(true);
+
+            const [currentWorkoutIndex, setCurrentWorkoutIndex] = useState(0);
+            const [isLoaded, setIsLoaded] = useState(false);
+            const [showToast, setShowToast] = useState(false);
+            
+            const [modalVisible, setModalVisible] = useState(false);
+            const [modalMode, setModalMode] = useState('exercise'); 
+            const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+            
+            const [newExercise, setNewExercise] = useState({ name: '', weight: '', reps: '', minReps: 8, maxReps: 12 });
+            const [workoutTitle, setWorkoutTitle] = useState('');
+            const [workoutColor, setWorkoutColor] = useState(WORKOUT_COLORS[0]);
+            const [editingId, setEditingId] = useState(null);
+            
+            const [tempCooldownInput, setTempCooldownInput] = useState('8');
+            const [tempCooldownEnabled, setTempCooldownEnabled] = useState(true);
+
+            const activeWorkout = workouts[currentWorkoutIndex] || workouts[0];
+            const isLastWorkout = currentWorkoutIndex === workouts.length - 1;
+            const isFirstWorkout = currentWorkoutIndex === 0;
+
+            const currentBgColor = isCooldownEnabled ? getRecoveryColor(activeWorkout.lastCompleted, cooldownDays) : COLORS.background;
+
+            useEffect(() => {
+                document.body.style.backgroundColor = currentBgColor;
+                const metaTheme = document.querySelector('meta[name="theme-color"]');
+                if (metaTheme) metaTheme.setAttribute("content", currentBgColor);
+            }, [currentBgColor]);
+
+            useEffect(() => {
+                try {
+                    const savedWorkouts = localStorage.getItem(STORAGE_KEY);
+                    const savedDays = localStorage.getItem(SETTINGS_STORAGE_KEY);
+                    const savedEnabled = localStorage.getItem(SETTINGS_ENABLED_KEY);
+
+                    if (savedWorkouts) setWorkouts(JSON.parse(savedWorkouts));
+                    if (savedDays) setCooldownDays(parseInt(savedDays, 10) || 8);
+                    if (savedEnabled) setIsCooldownEnabled(savedEnabled === 'true');
+                } catch(e) {
+                    console.error("Local storage error on boot", e);
+                }
+                setIsLoaded(true);
+            }, []);
+
+            useEffect(() => {
+                if (isLoaded) {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(workouts));
+                    setShowToast(true);
+                    const timer = setTimeout(() => setShowToast(false), 1500);
+                    return () => clearTimeout(timer);
+                }
+            }, [workouts, isLoaded]);
+
+            const persistSettings = (days, enabled) => {
+                localStorage.setItem(SETTINGS_STORAGE_KEY, days.toString());
+                localStorage.setItem(SETTINGS_ENABLED_KEY, enabled ? 'true' : 'false');
+                setCooldownDays(days);
+                setIsCooldownEnabled(enabled);
+            };
+
+            const handleNav = (dir) => {
+                vibrate(10);
+                if (dir === 1) {
+                    if (isLastWorkout) {
+                        setModalMode('create-workout'); setWorkoutTitle(''); setWorkoutColor(WORKOUT_COLORS[0]); setShowDeleteConfirm(false); setModalVisible(true);
+                    } else setCurrentWorkoutIndex(i => i + 1);
+                } else {
+                    if (!isFirstWorkout) setCurrentWorkoutIndex(i => i - 1);
+                }
+            };
+
+            const openAddModal = () => {
+                vibrate(10);
+                setModalMode('exercise'); setWorkoutColor(activeWorkout.color); setNewExercise({ name: '', weight: '', reps: '', minReps: 8, maxReps: 12 }); setEditingId(null); setShowDeleteConfirm(false); setModalVisible(true);
+            };
+
+            const openEditModal = (exercise) => {
+                vibrate(10);
+                setModalMode('exercise'); setWorkoutColor(activeWorkout.color);
+                setNewExercise({ name: exercise.name, weight: exercise.weight, reps: exercise.reps, minReps: exercise.minReps, maxReps: exercise.maxReps });
+                setEditingId(exercise.id); setShowDeleteConfirm(false); setModalVisible(true);
+            };
+
+            const headerLongPress = useLongPress(() => {
+                vibrate(20);
+                setModalMode('edit-workout'); setWorkoutTitle(activeWorkout.title); setWorkoutColor(activeWorkout.color); setShowDeleteConfirm(false); setModalVisible(true);
+            });
+
+            const openSettingsModal = () => {
+                vibrate(10);
+                setTempCooldownInput(cooldownDays.toString());
+                setTempCooldownEnabled(isCooldownEnabled);
+                setModalMode('settings');
+                setWorkoutColor(activeWorkout.color);
+                setShowDeleteConfirm(false);
+                setModalVisible(true);
+            };
+
+            const markWorkoutComplete = () => {
+                if(window.confirm(`Mark this workout completed? This restarts your ${cooldownDays}-day recovery indicator.`)) {
+                    vibrate([20, 50, 20]);
+                    const updated = [...workouts];
+                    updated[currentWorkoutIndex].lastCompleted = Date.now();
+                    setWorkouts(updated);
+                }
+            };
+
+            const handleSave = () => {
+                if (modalMode === 'settings') {
+                    let parsedDays = parseInt(tempCooldownInput.trim(), 10);
+                    if (isNaN(parsedDays) || parsedDays < 1) parsedDays = cooldownDays;
+                    persistSettings(parsedDays, tempCooldownEnabled);
+                    setModalVisible(false);
+                    return;
+                }
+
+                const updated = [...workouts];
+                const current = updated[currentWorkoutIndex];
+                
+                if (modalMode === 'create-workout') {
+                    if (!workoutTitle.trim()) return;
+                    const newW = { id: Math.random().toString(), title: workoutTitle, color: workoutColor, exercises: [] };
+                    setWorkouts([...workouts, newW]); setCurrentWorkoutIndex(workouts.length);
+                } else if (modalMode === 'edit-workout') {
+                    if (!workoutTitle.trim()) return;
+                    current.title = workoutTitle; current.color = workoutColor;
+                    setWorkouts(updated);
+                } else {
+                    if (!newExercise.name) return;
+                    const exData = { name: newExercise.name, weight: newExercise.weight || '0', reps: newExercise.reps || '0', minReps: newExercise.minReps, maxReps: newExercise.maxReps };
+                    if (editingId) {
+                        current.exercises = current.exercises.map(ex => ex.id === editingId ? { ...ex, ...exData } : ex);
+                    } else {
+                        current.exercises.push({ id: Math.random().toString(), ...exData, isExpanded: false });
+                    }
+                    setWorkouts(updated);
+                }
+                setModalVisible(false);
+            };
+
+            const performDelete = () => {
+                if (modalMode === 'edit-workout') {
+                    if (workouts.length <= 1) return setShowDeleteConfirm(false);
+                    const filtered = workouts.filter(w => w.id !== activeWorkout.id);
+                    setWorkouts(filtered); setCurrentWorkoutIndex(Math.min(currentWorkoutIndex, filtered.length - 1));
+                } else if (editingId) {
+                    const updated = [...workouts];
+                    updated[currentWorkoutIndex].exercises = updated[currentWorkoutIndex].exercises.filter(ex => ex.id !== editingId);
+                    setWorkouts(updated);
+                }
+                setModalVisible(false);
+            };
+
+            const toggleExpand = (id) => {
+                vibrate(5);
+                setWorkouts(workouts.map((w, i) => i === currentWorkoutIndex ? { ...w, exercises: w.exercises.map(e => ({ ...e, isExpanded: e.id === id ? !e.isExpanded : e.isExpanded })) } : w));
+            };
+
+            const updateStats = (id, type, inc) => {
+                vibrate(10);
+                setWorkouts(workouts.map((w, i) => i === currentWorkoutIndex ? {
+                    ...w, exercises: w.exercises.map(e => {
+                        if (e.id !== id) return e;
+                        const val = parseFloat(type === 'weight' ? e.weight : e.reps) || 0;
+                        const newVal = val + inc;
+                        const fmt = Number.isInteger(newVal) ? newVal.toString() : newVal.toFixed(1);
+                        return type === 'weight' ? { ...e, weight: fmt, reps: e.minReps.toString() } : { ...e, reps: fmt };
+                    })
+                } : w));
+            };
+
+            const isYellowBg = currentBgColor === '#FFD700';
+
+            return (
+                <div className="flex flex-col h-screen max-w-[500px] mx-auto relative overflow-hidden">
+                    
+                    <div className="flex justify-end px-[25px] pt-[15px] -mb-[15px] z-10">
+                        <button onClick={openSettingsModal} className="p-1 active:opacity-50 transition-opacity">
+                            <Icon name="settings" size={24} color={isYellowBg ? COLORS.textDark : COLORS.textLight} />
+                        </button>
+                    </div>
+
+                    <div className="flex items-center justify-between px-5 py-8 pt-10 relative z-0">
+                        <button onClick={() => handleNav(-1)} className="w-10 h-10 rounded-full flex items-center justify-center transition-opacity active:opacity-50" style={{ opacity: isFirstWorkout ? 0 : 1, backgroundColor: activeWorkout.color }} disabled={isFirstWorkout}>
+                            <Icon name="chevron-left" size={20} color="white" className="mr-0.5" />
+                        </button>
+                        <div {...headerLongPress} className="py-3 px-8 rounded-full min-w-[180px] flex items-center justify-center cursor-pointer select-none active:scale-95 transition-transform shadow-md" style={{ backgroundColor: activeWorkout.color }}>
+                            <span className="text-white font-bold text-[17px]">{activeWorkout.title}</span>
+                        </div>
+                        <button onClick={() => handleNav(1)} className="w-10 h-10 rounded-full flex items-center justify-center active:opacity-50" style={{ backgroundColor: activeWorkout.color }}>
+                            <Icon name={isLastWorkout ? "plus" : "chevron-right"} size={isLastWorkout ? 24 : 20} color="white" className={isLastWorkout ? "" : "ml-0.5"} />
+                        </button>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto pb-32 pt-5 no-scrollbar px-5">
+                        {activeWorkout.exercises.map(ex => (
+                            <ExerciseCard key={ex.id} data={ex} activeWorkout={activeWorkout} currentBgColor={currentBgColor} onEdit={openEditModal} onToggle={toggleExpand} onUpdateStats={updateStats} />
+                        ))}
+                        {activeWorkout.exercises.length === 0 && (
+                            <div className="text-gray-500 text-center mt-20 italic">No exercises yet.</div>
+                        )}
+                    </div>
+
+                    <div className={`absolute bottom-[130px] left-1/2 transform -translate-x-1/2 bg-black/60 px-5 py-2 rounded-full backdrop-blur-sm pointer-events-none transition-opacity duration-500 z-40 ${showToast ? 'opacity-100' : 'opacity-0'}`}>
+                        <span className="text-white font-bold">Saved</span>
+                    </div>
+
+                    {isCooldownEnabled && (
+                        <button onClick={markWorkoutComplete} className="absolute left-6 bottom-10 w-[70px] h-[70px] rounded-full flex items-center justify-center shadow-xl active:scale-90 transition-transform z-30" style={{ backgroundColor: activeWorkout.color }}>
+                            <Icon name="check-check" size={32} color="white" />
+                        </button>
+                    )}
+
+                    <button onClick={openAddModal} className="absolute right-6 bottom-10 w-[70px] h-[70px] rounded-full flex items-center justify-center shadow-xl active:scale-90 transition-transform z-30" style={{ backgroundColor: activeWorkout.color }}>
+                        <Icon name="plus" size={40} color="white" />
+                    </button>
+
+                    {modalVisible && (
+                        <div className="fixed inset-0 bg-black/80 z-50 flex items-end justify-center animate-fade-in px-2 sm:px-0">
+                            <div className="w-full max-w-[500px] rounded-t-[30px] p-[30px] pb-12 animate-slide-up border-t border-white/10" style={{ backgroundColor: currentBgColor }}>
+                                {showDeleteConfirm ? (
+                                    <div className="flex flex-col items-center py-4">
+                                        <Icon name="alert-triangle" size={50} color="#FF4444" className="mb-4" />
+                                        <h2 className="text-white text-2xl font-bold mb-2">Are you sure?</h2>
+                                        <p className="text-gray-300 mb-8">This will permanently remove it.</p>
+                                        <div className="flex gap-4 w-full">
+                                            <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 p-4 rounded-xl border border-white font-bold text-white active:bg-white/10">Cancel</button>
+                                            <button onClick={performDelete} className="flex-1 p-4 rounded-xl bg-[#FF4444] font-bold text-white active:opacity-80">Delete</button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="flex justify-between items-center mb-6">
+                                            {(editingId && modalMode === 'exercise' || modalMode === 'edit-workout') ? (
+                                                <button onClick={() => setShowDeleteConfirm(true)} className="p-1"><Icon name="trash-2" color="#FF4444" /></button>
+                                            ) : <div className="w-8"></div>}
+                                            <h2 className={`text-[22px] font-bold ${isYellowBg && modalMode !== 'exercise' && modalMode !== 'edit-workout' ? 'text-[#111534]' : 'text-white'}`}>
+                                                {modalMode === 'settings' ? 'Recovery Settings' : modalMode === 'create-workout' ? 'New Workout' : modalMode === 'edit-workout' ? 'Rename Workout' : editingId ? 'Edit Exercise' : 'Add Exercise'}
+                                            </h2>
+                                            <div className="w-8"></div>
+                                        </div>
+
+                                        {modalMode === 'settings' ? (
+                                            <>
+                                                <div className="flex justify-between items-center bg-[#2A2E4D] px-4 py-3 rounded-xl mb-3">
+                                                    <span className="text-white text-[16px] font-medium">Recovery Color Coding</span>
+                                                    <ToggleSwitch checked={tempCooldownEnabled} onChange={setTempCooldownEnabled} activeColor={activeWorkout.color} />
+                                                </div>
+                                                {tempCooldownEnabled && (
+                                                    <>
+                                                        <div className={`text-sm font-bold mt-4 mb-2 ${isYellowBg ? 'text-gray-700' : 'text-gray-400'}`}>Full Cycle Duration (Days)</div>
+                                                        <input className="w-full bg-[#2A2E4D] text-white p-4 rounded-xl mb-2 text-lg" type="number" placeholder="8" value={tempCooldownInput} onChange={e => setTempCooldownInput(e.target.value)} />
+                                                        <p className="text-gray-300 text-sm text-center mb-4 leading-snug">The days it takes a completed workout to go Red → Yellow → Green → Default Blue.</p>
+                                                    </>
+                                                )}
+                                            </>
+                                        ) : (modalMode === 'create-workout' || modalMode === 'edit-workout') ? (
+                                            <>
+                                                <input className="w-full bg-[#2A2E4D] text-white p-4 rounded-xl mb-4 text-lg" placeholder="Workout Name" value={workoutTitle} onChange={e => setWorkoutTitle(e.target.value)} autoFocus />
+                                                <div className="mb-6">
+                                                    <div className={`text-sm font-bold mb-2 ${isYellowBg ? 'text-gray-700' : 'text-gray-400'}`}>Theme Color</div>
+                                                    <div className="flex justify-between">
+                                                        {WORKOUT_COLORS.map(c => (
+                                                            <button key={c} onClick={() => { vibrate(10); setWorkoutColor(c); }} className={`w-10 h-10 rounded-full transition-transform ${workoutColor === c ? 'scale-110 border-2 border-white' : ''}`} style={{ backgroundColor: c }} />
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <input className="w-full bg-[#2A2E4D] text-white p-4 rounded-xl mb-4 text-lg" placeholder="Exercise Name" value={newExercise.name} onChange={e => setNewExercise({...newExercise, name: e.target.value})} />
+                                                <div className="flex gap-4 mb-4">
+                                                    <input className="flex-1 bg-[#2A2E4D] text-white p-4 rounded-xl text-lg" type="number" placeholder="Weight" value={newExercise.weight} onChange={e => setNewExercise({...newExercise, weight: e.target.value})} />
+                                                    <input className="flex-1 bg-[#2A2E4D] text-white p-4 rounded-xl text-lg" type="number" placeholder="Reps" value={newExercise.reps} onChange={e => setNewExercise({...newExercise, reps: e.target.value})} />
+                                                </div>
+                                                <div className={`text-sm font-bold mb-2 ${isYellowBg ? 'text-gray-700' : 'text-gray-400'}`}>Target Range: {newExercise.minReps} - {newExercise.maxReps}</div>
+                                                <RepRangeSelector min={newExercise.minReps} max={newExercise.maxReps} color={workoutColor} onRangeChange={(min, max) => setNewExercise({ ...newExercise, minReps: min, maxReps: max })} />
+                                            </>
+                                        )}
+                                        <div className="flex gap-4 mt-8">
+                                            <button onClick={() => setModalVisible(false)} className="flex-1 p-4 rounded-xl border-2 font-bold" style={{ borderColor: workoutColor, color: workoutColor }}>Cancel</button>
+                                            <button onClick={handleSave} className="flex-1 p-4 rounded-xl font-bold text-[#111534]" style={{ backgroundColor: workoutColor }}>Save</button>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
