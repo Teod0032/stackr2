@@ -1,0 +1,15 @@
+{
+  "name": "Stackr Workout",
+  "short_name": "Stackr",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0F1333",
+  "theme_color": "#0F1333",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
