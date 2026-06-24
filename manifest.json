@@ -1,6 +1,6 @@
 {
-  "name": "Stackr Workout",
-  "short_name": "Stackr",
+  "name": "My Workout App",
+  "short_name": "Workout",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#0F1333",
