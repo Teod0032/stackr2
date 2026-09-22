@@ -10,6 +10,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0F1333">
 
+    <!-- Cache-Busting Tags for iOS PWA updates -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
     <link rel="icon" type="image/png" href="./icon.png">
     <link rel="apple-touch-icon" href="./icon.png">
     <link rel="manifest" id="my-manifest">
@@ -342,22 +347,23 @@
                             <div {...longPressProps} className="w-[45%] h-full flex items-center pl-[20px] pr-[10px] cursor-pointer active:opacity-80">
                                 <span className="text-[#111534] text-[18px] font-bold line-clamp-2 leading-tight">{data.name}</span>
                             </div>
-                            <div onClick={() => onToggle(data.id)} className="w-[55%] h-full flex flex-col justify-center pl-[55px] pr-[20px] cursor-pointer active:opacity-80">
+                            {/* Adjusted Layout Padding for bigger numbers */}
+                            <div onClick={() => onToggle(data.id)} className="w-[55%] h-full flex flex-col justify-center pl-[45px] pr-[15px] cursor-pointer active:opacity-80">
                                 <div className="flex items-center justify-between w-full">
-                                    <span className="text-[#111534] text-[13px] font-[800] opacity-50 w-[35px]">TOP</span>
-                                    <div className="flex-1 flex justify-end pr-2">
-                                        <span className="text-[#111534] text-[18px] font-bold">{data.topWeight} <span className="text-[12px] font-normal">kg</span></span>
+                                    <span className="text-[#111534] text-[12px] font-[800] opacity-50 w-[28px] shrink-0">TOP</span>
+                                    <div className="flex-1 flex justify-end pr-1.5 overflow-hidden">
+                                        <span className="text-[#111534] text-[17px] font-bold whitespace-nowrap tracking-tight">{data.topWeight} <span className="text-[12px] font-normal">kg</span></span>
                                     </div>
-                                    <div className="rounded-[10px] min-w-[26px] h-[22px] flex items-center justify-center px-[6px]" style={{ backgroundColor: activeWorkout.color }}>
+                                    <div className="rounded-[10px] min-w-[26px] h-[22px] flex items-center justify-center px-[6px] shrink-0" style={{ backgroundColor: activeWorkout.color }}>
                                         <span className="text-white text-[13px] font-bold">{data.topReps}</span>
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-between w-full mt-1">
-                                    <span className="text-[#111534] text-[13px] font-[800] opacity-50 w-[35px]">B.O</span>
-                                    <div className="flex-1 flex justify-end pr-2">
-                                        <span className="text-[#111534] text-[18px] font-bold">{data.backWeight} <span className="text-[12px] font-normal">kg</span></span>
+                                    <span className="text-[#111534] text-[12px] font-[800] opacity-50 w-[28px] shrink-0">B.O</span>
+                                    <div className="flex-1 flex justify-end pr-1.5 overflow-hidden">
+                                        <span className="text-[#111534] text-[17px] font-bold whitespace-nowrap tracking-tight">{data.backWeight} <span className="text-[12px] font-normal">kg</span></span>
                                     </div>
-                                    <div className="rounded-[10px] min-w-[26px] h-[22px] flex items-center justify-center px-[6px]" style={{ backgroundColor: activeWorkout.color, opacity: 0.8 }}>
+                                    <div className="rounded-[10px] min-w-[26px] h-[22px] flex items-center justify-center px-[6px] shrink-0" style={{ backgroundColor: activeWorkout.color, opacity: 0.8 }}>
                                         <span className="text-white text-[13px] font-bold">{data.backReps}</span>
                                     </div>
                                 </div>
@@ -506,7 +512,6 @@
                 setIsCooldownEnabled(enabled);
             };
 
-            // WEB FILE I/O (No Native Sharing)
             const handleExportData = () => {
                 vibrate(10);
                 try {
