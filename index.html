@@ -53,7 +53,6 @@
     <div id="root"></div>
 
     <script>
-        // Generate manifest dynamically for PWA support
         window.addEventListener('DOMContentLoaded', () => {
             const baseUrl = new URL('.', window.location.href).href;
             const manifest = {
@@ -82,11 +81,13 @@
         
         const COLORS = {
             background: '#0F1333', cardBgLeft: '#E6E6E6', cardBgRight: '#D1D1D1',
-            accent: '#F28C42', textDark: '#111534', textLight: '#FFFFFF',
-            inputBg: '#2A2E4D', menuBg: '#1A1F4B', danger: '#FF4444', selectorBg: '#E0E0E0',     
+            accent: '#F28C42', secondaryAccent: '#42D4F2', textDark: '#111534', textLight: '#FFFFFF',
+            inputBg: '#2A2E4D', menuBg: '#1A1F4B', danger: '#FF4444', selectorBg: '#E0E0E0',      
         };
 
         const WORKOUT_COLORS = ['#F28C42', '#FF5C8D', '#9B5CFF', '#42D4F2', '#5CFF87', '#FFD65C'];
+        const WORKOUT_BG_COLORS = ['#0F1333', '#1F2937', '#311A2E', '#132A20'];
+        
         const STORAGE_KEY = '@stackr_workouts_v1';
         const SETTINGS_STORAGE_KEY = '@stackr_recovery_settings_v1';
         const SETTINGS_ENABLED_KEY = '@stackr_recovery_enabled_v1';
@@ -95,16 +96,24 @@
         const CARD_MARGIN = 20;
         const CARD_WIDTH = SCREEN_WIDTH - (CARD_MARGIN * 2);
         const CARD_HEIGHT = 90;
-        const SPLIT_PCT = 0.55; 
-        const SLANT = 30;       
+        const SPLIT_PCT = 0.45; 
+        const SLANT = 25;       
         const GAP_WIDTH = 8;    
 
         const INITIAL_WORKOUTS = [
-            { id: 'w1', title: "Push Day", color: '#F28C42', exercises: [ { id: 'e1', name: 'Bench Press', weight: '50', reps: '10', minReps: 8, maxReps: 12, isExpanded: false }, { id: 'e2', name: 'Incline Dumbbell', weight: '24', reps: '8', minReps: 10, maxReps: 15, isExpanded: false } ] },
-            { id: 'w2', title: "Pull Day", color: '#42D4F2', exercises: [{ id: 'e5', name: 'Deadlift', weight: '140', reps: '5', minReps: 5, maxReps: 8, isExpanded: false }] }
+            {
+                id: 'w1', title: "Push Day", color: '#F28C42', bgColor: '#0F1333',
+                exercises: [
+                    { id: 'e1', name: 'Bench Press', topWeight: '80', topReps: '5', backWeight: '60', backReps: '8', topMinReps: 5, topMaxReps: 8, backMinReps: 8, backMaxReps: 12, incrementType: 'compound', isExpanded: false, history: [] }, 
+                    { id: 'e2', name: 'Incline Dumbbell', topWeight: '32', topReps: '6', backWeight: '24', backReps: '10', topMinReps: 6, topMaxReps: 10, backMinReps: 10, backMaxReps: 15, incrementType: 'compound', isExpanded: false, history: [] }, 
+                ]
+            },
+            {
+                id: 'w2', title: "Pull Day", color: '#42D4F2', bgColor: '#0F1333',
+                exercises: [{ id: 'e5', name: 'Deadlift', topWeight: '140', topReps: '5', backWeight: '100', backReps: '8', topMinReps: 3, topMaxReps: 5, backMinReps: 5, backMaxReps: 8, incrementType: 'compound', isExpanded: false, history: [] }]
+            }
         ];
 
-        // Hardcoded SVGs
         const ICONS = {
             'chevron-left': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>,
             'chevron-right': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>,
@@ -112,7 +121,11 @@
             'trash-2': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>,
             'alert-triangle': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>,
             'settings': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>,
-            'check-check': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/></svg>
+            'check-check': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/></svg>,
+            'stats-chart': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-4"/></svg>,
+            'close': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+            'cloud-upload': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m8 16 4-4 4 4"/></svg>,
+            'cloud-download': <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m8 17 4 4 4-4"/></svg>
         };
 
         const Icon = ({ name, size = 24, color = "currentColor", className = "" }) => (
@@ -174,7 +187,7 @@
             };
         };
 
-        const RepRangeSelector = ({ min, max, onRangeChange, color }) => {
+        const RepRangeSelector = ({ min, max, onRangeChange, color, activeOpacity = 1 }) => {
             const numbers = [4, 5, 6, 7, 8, 9, 10, 11, 12];
             const stepWidthPct = 100 / numbers.length; 
             const barLeftPosPct = ((min - 4) * stepWidthPct) + (stepWidthPct / 2);
@@ -189,7 +202,7 @@
             return (
                 <div className="relative h-[50px] w-full bg-[#E0E0E0] rounded-[30px] flex items-center justify-center overflow-hidden">
                     {min !== max && (
-                        <div style={{ position: 'absolute', height: '20px', backgroundColor: color, opacity: 0.5, left: `${barLeftPosPct}%`, right: `${barRightPosPct}%`, zIndex: 0 }}></div>
+                        <div style={{ position: 'absolute', height: '20px', backgroundColor: color, opacity: 0.5 * activeOpacity, left: `${barLeftPosPct}%`, right: `${barRightPosPct}%`, zIndex: 0 }}></div>
                     )}
                     <div className="flex w-full h-full z-10">
                         {numbers.map((num) => {
@@ -200,7 +213,7 @@
                             return (
                                 <div key={num} onClick={() => handlePress(num)} className="flex-1 h-full flex items-center justify-center relative cursor-pointer">
                                     {(isMin || isMax) && (
-                                        <div style={{ position: 'absolute', width: '40px', height: '40px', backgroundColor: color, borderRadius: '50%', zIndex: -1 }}></div>
+                                        <div style={{ position: 'absolute', width: '40px', height: '40px', backgroundColor: color, opacity: activeOpacity, borderRadius: '50%', zIndex: -1 }}></div>
                                     )}
                                     <span style={{ color: (isMin || isMax) ? '#FFF' : (isInRange ? '#111534' : '#888'), fontWeight: isActive ? 'bold' : 'normal', fontSize: '16px' }}>{num}</span>
                                 </div>
@@ -211,12 +224,112 @@
             );
         };
 
-        const ExerciseCard = ({ data, activeWorkout, currentBgColor, onEdit, onToggle, onUpdateStats }) => {
+        const ProgressChart = ({ history, bgColor }) => {
+            const scrollRef = useRef(null);
+
+            useEffect(() => {
+                if (scrollRef.current) {
+                    scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
+                }
+            }, [history]);
+
+            if (!history || history.length < 2) {
+                return (
+                    <div className="h-[180px] flex flex-col items-center justify-center opacity-50 px-5 text-center mt-2">
+                        <Icon name="stats-chart" size={40} color="rgba(255,255,255,0.2)" />
+                        <span className="text-white mt-3 text-sm">Log at least two sessions to see your progress curve.</span>
+                    </div>
+                );
+            }
+
+            const sorted = [...history].sort((a, b) => a.date - b.date);
+            const paddingX = 40; 
+            const paddingY = 40; 
+            const pointSpacing = 75; 
+            const minContainerWidth = SCREEN_WIDTH - 80; 
+            const calculatedWidth = (sorted.length - 1) * pointSpacing + (paddingX * 2);
+            const chartWidth = Math.max(minContainerWidth, calculatedWidth);
+            const chartHeight = 200; 
+
+            const allWeights = sorted.flatMap(h => [
+                parseFloat(h.topWeight.replace(',', '.')) || 0, 
+                parseFloat(h.backWeight.replace(',', '.')) || 0
+            ]);
+            let maxW = Math.max(...allWeights);
+            let minW = Math.min(...allWeights);
+
+            if (maxW === minW) { maxW += 10; minW = Math.max(0, minW - 10); }
+            const range = maxW - minW || 1; 
+
+            const topPoints = sorted.map((h, i) => {
+                const x = paddingX + (i / (sorted.length - 1)) * (chartWidth - paddingX * 2);
+                const w = parseFloat(h.topWeight.replace(',', '.')) || 0;
+                const y = chartHeight - paddingY - ((w - minW) / range) * (chartHeight - paddingY * 2);
+                return { x, y, weight: h.topWeight, reps: h.topReps, date: h.date };
+            });
+
+            const backPoints = sorted.map((h, i) => {
+                const x = paddingX + (i / (sorted.length - 1)) * (chartWidth - paddingX * 2);
+                const w = parseFloat(h.backWeight.replace(',', '.')) || 0;
+                const y = chartHeight - paddingY - ((w - minW) / range) * (chartHeight - paddingY * 2);
+                return { x, y, weight: h.backWeight, reps: h.backReps };
+            });
+
+            const topPath = topPoints.map(p => `${p.x},${p.y}`).join(' ');
+            const backPath = backPoints.map(p => `${p.x},${p.y}`).join(' ');
+
+            return (
+                <div className="w-full h-[200px] my-[10px] overflow-hidden rounded-xl border border-white/5 bg-black/20">
+                    <div ref={scrollRef} className="w-full h-full overflow-x-auto no-scrollbar">
+                        <div style={{ width: chartWidth, height: chartHeight, position: 'relative' }}>
+                            <svg width={chartWidth} height={chartHeight}>
+                                <line x1="0" y1={chartHeight - 20} x2={chartWidth} y2={chartHeight - 20} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+                                
+                                <polyline points={backPath} fill="none" stroke={COLORS.secondaryAccent} strokeWidth="3" opacity="0.6" strokeLinejoin="round" />
+                                {backPoints.map((p, i) => (
+                                    <g key={`back-${i}`}>
+                                        <circle cx={p.x} cy={p.y} r="4" fill={bgColor} stroke={COLORS.secondaryAccent} strokeWidth="2" />
+                                        <text x={p.x} y={p.y + 18} fill={COLORS.textLight} fontSize="10" opacity="0.6" textAnchor="middle">{`${p.weight}×${p.reps}`}</text>
+                                    </g>
+                                ))}
+
+                                <polyline points={topPath} fill="none" stroke={COLORS.accent} strokeWidth="4" strokeLinejoin="round" />
+                                {topPoints.map((p, i) => {
+                                    const d = new Date(p.date);
+                                    const formattedDate = `${d.getDate()}/${d.getMonth() + 1}`;
+                                    return (
+                                        <g key={`top-${i}`}>
+                                            <circle cx={p.x} cy={p.y} r="5" fill={bgColor} stroke={COLORS.accent} strokeWidth="3" />
+                                            <text x={p.x} y={p.y - 12} fill={COLORS.textLight} fontSize="12" fontWeight="bold" textAnchor="middle">{`${p.weight}×${p.reps}`}</text>
+                                            <text x={p.x} y={chartHeight - 4} fill="rgba(255,255,255,0.4)" fontSize="10" fontWeight="bold" textAnchor="middle">{formattedDate}</text>
+                                        </g>
+                                    );
+                                })}
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const ExerciseCard = ({ data, activeWorkout, currentBgColor, onEdit, onToggle, onUpdateStats, onOpenGraph }) => {
             const longPressProps = useLongPress(() => onEdit(data));
             const topSplitX = CARD_WIDTH * SPLIT_PCT;
             const bottomSplitX = topSplitX + SLANT; 
             const leftPath = `M 0 0 L ${topSplitX} 0 L ${bottomSplitX} ${CARD_HEIGHT} L 0 ${CARD_HEIGHT} Z`;
             const rightPath = `M ${topSplitX + GAP_WIDTH} 0 L ${CARD_WIDTH} 0 L ${CARD_WIDTH} ${CARD_HEIGHT} L ${bottomSplitX + GAP_WIDTH} ${CARD_HEIGHT} Z`;
+
+            const getIncrementValue = () => {
+                if (data.incrementType === 'isolation') return 1;
+                if (data.incrementType === 'custom') {
+                    const parsed = parseFloat((data.customIncrement || '0').replace(',', '.'));
+                    return isNaN(parsed) || parsed <= 0 ? 2.5 : parsed;
+                }
+                return 2.5; 
+            };
+
+            const weightIncrement = getIncrementValue();
+            const formattedIncrementText = Number.isInteger(weightIncrement) ? weightIncrement.toString() : weightIncrement.toFixed(1).replace('.', ',');
 
             return (
                 <div className="relative mb-[35px] mx-auto" style={{ width: CARD_WIDTH }}>
@@ -226,28 +339,62 @@
                             <path d={rightPath} fill={COLORS.cardBgRight} />
                         </svg>
                         <div className="absolute inset-0 flex">
-                            <div {...longPressProps} className="w-[55%] h-full flex items-center pl-[25px] cursor-pointer active:opacity-80">
-                                <span className="text-[#111534] text-[20px] font-bold truncate pr-2">{data.name}</span>
+                            <div {...longPressProps} className="w-[45%] h-full flex items-center pl-[20px] pr-[10px] cursor-pointer active:opacity-80">
+                                <span className="text-[#111534] text-[18px] font-bold line-clamp-2 leading-tight">{data.name}</span>
                             </div>
-                            <div onClick={() => onToggle(data.id)} className="w-[45%] h-full flex flex-col items-center justify-center pl-[5px] cursor-pointer active:opacity-80">
-                                <span className="text-[#111534] text-[36px] font-bold leading-none">{data.weight}</span>
-                                <span className="text-[#111534] text-[16px] font-bold">Kg</span>
+                            <div onClick={() => onToggle(data.id)} className="w-[55%] h-full flex flex-col justify-center pl-[55px] pr-[20px] cursor-pointer active:opacity-80">
+                                <div className="flex items-center justify-between w-full">
+                                    <span className="text-[#111534] text-[13px] font-[800] opacity-50 w-[35px]">TOP</span>
+                                    <div className="flex-1 flex justify-end pr-2">
+                                        <span className="text-[#111534] text-[18px] font-bold">{data.topWeight} <span className="text-[12px] font-normal">kg</span></span>
+                                    </div>
+                                    <div className="rounded-[10px] min-w-[26px] h-[22px] flex items-center justify-center px-[6px]" style={{ backgroundColor: activeWorkout.color }}>
+                                        <span className="text-white text-[13px] font-bold">{data.topReps}</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-between w-full mt-1">
+                                    <span className="text-[#111534] text-[13px] font-[800] opacity-50 w-[35px]">B.O</span>
+                                    <div className="flex-1 flex justify-end pr-2">
+                                        <span className="text-[#111534] text-[18px] font-bold">{data.backWeight} <span className="text-[12px] font-normal">kg</span></span>
+                                    </div>
+                                    <div className="rounded-[10px] min-w-[26px] h-[22px] flex items-center justify-center px-[6px]" style={{ backgroundColor: activeWorkout.color, opacity: 0.8 }}>
+                                        <span className="text-white text-[13px] font-bold">{data.backReps}</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div className="absolute -top-[20px] -right-[6px] w-[55px] h-[55px] rounded-full flex items-center justify-center border-4 z-20 shadow-sm transition-colors duration-500" 
-                         style={{ backgroundColor: activeWorkout.color, borderColor: currentBgColor }}>
-                        <span className="text-white text-[20px] font-bold">{data.reps}</span>
-                    </div>
                     {data.isExpanded && (
-                        <div className="mt-[15px] bg-[#1A1F4B] rounded-[20px] p-[15px] flex gap-[10px] animate-slide-down">
-                            <button onClick={() => onUpdateStats(data.id, 'reps', 1)} className="flex-1 bg-[#2A2E4D] py-3 px-4 rounded-[15px] flex justify-between items-center active:scale-95 transition-transform">
-                                <span className="text-white font-bold text-[16px]">1 Rep</span>
-                                <Icon name="plus" size={20} color="white" />
-                            </button>
-                            <button onClick={() => onUpdateStats(data.id, 'weight', 2.5)} className="flex-1 py-3 px-4 rounded-[15px] flex justify-between items-center active:scale-95 transition-transform" style={{ backgroundColor: activeWorkout.color }}>
-                                <span className="text-[#111534] font-bold text-[16px]">2,5 Kg</span>
-                                <Icon name="plus" size={20} color="#111534" />
+                        <div className="mt-[15px] bg-[#1A1F4B] rounded-[20px] p-[15px] flex flex-col animate-slide-down">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[#888] font-bold text-[14px] w-[45px]">Top</span>
+                                <div className="flex-1 flex gap-[10px]">
+                                    <button onClick={() => onUpdateStats(data.id, 'top', 'reps', 1)} className="flex-1 bg-[#2A2E4D] py-3 px-3 rounded-[12px] flex justify-between items-center active:scale-95 transition-transform">
+                                        <span className="text-white font-bold text-[15px]">1 Rep</span>
+                                        <Icon name="plus" size={20} color="white" />
+                                    </button>
+                                    <button onClick={() => onUpdateStats(data.id, 'top', 'weight', weightIncrement)} className="flex-1 py-3 px-3 rounded-[12px] flex justify-between items-center active:scale-95 transition-transform" style={{ backgroundColor: activeWorkout.color }}>
+                                        <span className="text-[#111534] font-bold text-[15px]">{formattedIncrementText} Kg</span>
+                                        <Icon name="plus" size={20} color="#111534" />
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-between mt-[10px]">
+                                <span className="text-[#888] font-bold text-[14px] w-[45px]">Back</span>
+                                <div className="flex-1 flex gap-[10px]">
+                                    <button onClick={() => onUpdateStats(data.id, 'back', 'reps', 1)} className="flex-1 bg-[#2A2E4D] py-3 px-3 rounded-[12px] flex justify-between items-center active:scale-95 transition-transform">
+                                        <span className="text-white font-bold text-[15px]">1 Rep</span>
+                                        <Icon name="plus" size={20} color="white" />
+                                    </button>
+                                    <button onClick={() => onUpdateStats(data.id, 'back', 'weight', weightIncrement)} className="flex-1 py-3 px-3 rounded-[12px] flex justify-between items-center active:scale-95 transition-transform" style={{ backgroundColor: activeWorkout.color, opacity: 0.8 }}>
+                                        <span className="text-[#111534] font-bold text-[15px]">{formattedIncrementText} Kg</span>
+                                        <Icon name="plus" size={20} color="#111534" />
+                                    </button>
+                                </div>
+                            </div>
+                            <button onClick={() => onOpenGraph(data)} className="flex items-center justify-center mt-[15px] pt-[15px] border-t border-white/10 active:opacity-70">
+                                <Icon name="stats-chart" size={18} color="white" className="mr-2 opacity-80" />
+                                <span className="text-white font-bold text-[14px] opacity-80">View Progress Chart</span>
                             </button>
                         </div>
                     )}
@@ -264,13 +411,19 @@
             const [isLoaded, setIsLoaded] = useState(false);
             const [showToast, setShowToast] = useState(false);
             
+            // Modals
             const [modalVisible, setModalVisible] = useState(false);
             const [modalMode, setModalMode] = useState('exercise'); 
             const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+            const [graphModalVisible, setGraphModalVisible] = useState(false);
+            const [selectedGraphExercise, setSelectedGraphExercise] = useState(null);
+            const [customAlert, setCustomAlert] = useState({ visible: false, title: '', message: '', buttons: [] });
+            const closeCustomAlert = () => setCustomAlert(prev => ({ ...prev, visible: false }));
             
-            const [newExercise, setNewExercise] = useState({ name: '', weight: '', reps: '', minReps: 8, maxReps: 12 });
+            const [newExercise, setNewExercise] = useState({ name: '', topWeight: '', topReps: '', backWeight: '', backReps: '', topMinReps: 5, topMaxReps: 8, backMinReps: 8, backMaxReps: 12, incrementType: 'compound', customIncrement: '' });
             const [workoutTitle, setWorkoutTitle] = useState('');
             const [workoutColor, setWorkoutColor] = useState(WORKOUT_COLORS[0]);
+            const [workoutBgColor, setWorkoutBgColor] = useState(WORKOUT_BG_COLORS[0]);
             const [editingId, setEditingId] = useState(null);
             
             const [tempCooldownInput, setTempCooldownInput] = useState('8');
@@ -280,7 +433,9 @@
             const isLastWorkout = currentWorkoutIndex === workouts.length - 1;
             const isFirstWorkout = currentWorkoutIndex === 0;
 
-            const currentBgColor = isCooldownEnabled ? getRecoveryColor(activeWorkout.lastCompleted, cooldownDays) : COLORS.background;
+            const recoveryColor = isCooldownEnabled ? getRecoveryColor(activeWorkout.lastCompleted, cooldownDays) : COLORS.background;
+            const baseBg = activeWorkout.bgColor || COLORS.background;
+            const currentBgColor = recoveryColor === COLORS.background ? baseBg : recoveryColor;
 
             useEffect(() => {
                 document.body.style.backgroundColor = currentBgColor;
@@ -294,11 +449,43 @@
                     const savedDays = localStorage.getItem(SETTINGS_STORAGE_KEY);
                     const savedEnabled = localStorage.getItem(SETTINGS_ENABLED_KEY);
 
-                    if (savedWorkouts) setWorkouts(JSON.parse(savedWorkouts));
+                    if (savedWorkouts) {
+                        const parsed = JSON.parse(savedWorkouts);
+                        const now = Date.now();
+                        const oneDayMs = 24 * 60 * 60 * 1000;
+                        const migrated = parsed.map(w => ({
+                            ...w,
+                            bgColor: w.bgColor || COLORS.background,
+                            exercises: w.exercises.map(ex => {
+                                const topW = ex.topWeight !== undefined ? ex.topWeight : (ex.weight || '0');
+                                const topR = ex.topReps !== undefined ? ex.topReps : (ex.reps || '0');
+                                const backW = ex.backWeight !== undefined ? ex.backWeight : '0';
+                                const backR = ex.backReps !== undefined ? ex.backReps : '0';
+                                let exHistory = ex.history && ex.history.length >= 2 ? ex.history : [];
+
+                                if (exHistory.length === 0) {
+                                    for(let i = 6; i >= 0; i--) {
+                                        exHistory.push({ date: now - (i * oneDayMs), topWeight: topW, topReps: topR, backWeight: backW, backReps: backR });
+                                    }
+                                }
+
+                                return {
+                                    ...ex, topWeight: topW, topReps: topR, backWeight: backW, backReps: backR,
+                                    topMinReps: ex.topMinReps !== undefined ? ex.topMinReps : (ex.minReps || 5),
+                                    topMaxReps: ex.topMaxReps !== undefined ? ex.topMaxReps : (ex.maxReps || 8),
+                                    backMinReps: ex.backMinReps !== undefined ? ex.backMinReps : (ex.minReps || 8),
+                                    backMaxReps: ex.backMaxReps !== undefined ? ex.backMaxReps : (ex.maxReps || 12),
+                                    incrementType: ex.incrementType || 'compound', customIncrement: ex.customIncrement || '',
+                                    history: exHistory, isExpanded: false,
+                                };
+                            })
+                        }));
+                        setWorkouts(migrated);
+                    }
                     if (savedDays) setCooldownDays(parseInt(savedDays, 10) || 8);
                     if (savedEnabled) setIsCooldownEnabled(savedEnabled === 'true');
                 } catch(e) {
-                    console.error("Local storage error on boot", e);
+                    setCustomAlert({ visible: true, title: "Error", message: "Could not load your saved app data.", buttons: [{ text: "OK", style: 'default' }] });
                 }
                 setIsLoaded(true);
             }, []);
@@ -319,11 +506,71 @@
                 setIsCooldownEnabled(enabled);
             };
 
+            // WEB FILE I/O (No Native Sharing)
+            const handleExportData = () => {
+                vibrate(10);
+                try {
+                    const backupData = { workouts, settings: { cooldownDays, isCooldownEnabled } };
+                    const jsonString = JSON.stringify(backupData, null, 2);
+                    const blob = new Blob([jsonString], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `stackr_backup_${new Date().toISOString().split('T')[0]}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    setCustomAlert({ visible: true, title: "Exported", message: "Backup file saved to your device's Downloads folder.", buttons: [{ text: "OK" }] });
+                } catch (e) {
+                    setCustomAlert({ visible: true, title: "Export Failed", message: "Could not generate backup file.", buttons: [{ text: "OK" }] });
+                }
+            };
+
+            const handleImportData = () => {
+                vibrate(10);
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'application/json,.json';
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const parsedData = JSON.parse(event.target.result);
+                            if (parsedData && Array.isArray(parsedData.workouts)) {
+                                setWorkouts(parsedData.workouts);
+                                if (parsedData.settings) {
+                                    const importedDays = parsedData.settings.cooldownDays || 8;
+                                    const importedEnabled = parsedData.settings.isCooldownEnabled ?? true;
+                                    setCooldownDays(importedDays);
+                                    setIsCooldownEnabled(importedEnabled);
+                                    setTempCooldownInput(importedDays.toString());
+                                    setTempCooldownEnabled(importedEnabled);
+                                }
+                                setCustomAlert({ visible: true, title: "Success", message: "Your backup was successfully restored!", buttons: [{ text: "Awesome" }] });
+                                setModalVisible(false);
+                            } else {
+                                throw new Error("Invalid format");
+                            }
+                        } catch(err) {
+                            setCustomAlert({ visible: true, title: "Invalid File", message: "This file does not appear to be a valid Stackr backup.", buttons: [{ text: "OK" }] });
+                        }
+                    };
+                    reader.readAsText(file);
+                };
+                input.click();
+            };
+
             const handleNav = (dir) => {
                 vibrate(10);
                 if (dir === 1) {
                     if (isLastWorkout) {
-                        setModalMode('create-workout'); setWorkoutTitle(''); setWorkoutColor(WORKOUT_COLORS[0]); setShowDeleteConfirm(false); setModalVisible(true);
+                        setModalMode('create-workout'); setWorkoutTitle(''); setWorkoutColor(WORKOUT_COLORS[0]); setWorkoutBgColor(WORKOUT_BG_COLORS[0]); setShowDeleteConfirm(false); setModalVisible(true);
                     } else setCurrentWorkoutIndex(i => i + 1);
                 } else {
                     if (!isFirstWorkout) setCurrentWorkoutIndex(i => i - 1);
@@ -332,19 +579,19 @@
 
             const openAddModal = () => {
                 vibrate(10);
-                setModalMode('exercise'); setWorkoutColor(activeWorkout.color); setNewExercise({ name: '', weight: '', reps: '', minReps: 8, maxReps: 12 }); setEditingId(null); setShowDeleteConfirm(false); setModalVisible(true);
+                setModalMode('exercise'); setWorkoutColor(activeWorkout.color); setNewExercise({ name: '', topWeight: '', topReps: '', backWeight: '', backReps: '', topMinReps: 5, topMaxReps: 8, backMinReps: 8, backMaxReps: 12, incrementType: 'compound', customIncrement: '' }); setEditingId(null); setShowDeleteConfirm(false); setModalVisible(true);
             };
 
             const openEditModal = (exercise) => {
                 vibrate(10);
                 setModalMode('exercise'); setWorkoutColor(activeWorkout.color);
-                setNewExercise({ name: exercise.name, weight: exercise.weight, reps: exercise.reps, minReps: exercise.minReps, maxReps: exercise.maxReps });
+                setNewExercise({ name: exercise.name, topWeight: exercise.topWeight, topReps: exercise.topReps, backWeight: exercise.backWeight, backReps: exercise.backReps, topMinReps: exercise.topMinReps, topMaxReps: exercise.topMaxReps, backMinReps: exercise.backMinReps, backMaxReps: exercise.backMaxReps, incrementType: exercise.incrementType || 'compound', customIncrement: exercise.customIncrement || '' });
                 setEditingId(exercise.id); setShowDeleteConfirm(false); setModalVisible(true);
             };
 
             const headerLongPress = useLongPress(() => {
                 vibrate(20);
-                setModalMode('edit-workout'); setWorkoutTitle(activeWorkout.title); setWorkoutColor(activeWorkout.color); setShowDeleteConfirm(false); setModalVisible(true);
+                setModalMode('edit-workout'); setWorkoutTitle(activeWorkout.title); setWorkoutColor(activeWorkout.color); setWorkoutBgColor(activeWorkout.bgColor || WORKOUT_BG_COLORS[0]); setShowDeleteConfirm(false); setModalVisible(true);
             });
 
             const openSettingsModal = () => {
@@ -358,12 +605,31 @@
             };
 
             const markWorkoutComplete = () => {
-                if(window.confirm(`Mark this workout completed? This restarts your ${cooldownDays}-day recovery indicator.`)) {
-                    vibrate([20, 50, 20]);
-                    const updated = [...workouts];
-                    updated[currentWorkoutIndex].lastCompleted = Date.now();
-                    setWorkouts(updated);
-                }
+                const alertMsg = isCooldownEnabled ? `Log today's weights to history and restart your ${cooldownDays}-day recovery indicator?` : "Log today's weights and reps to your history?";
+                setCustomAlert({
+                    visible: true, title: "Workout Complete", message: alertMsg,
+                    buttons: [
+                        { text: "Cancel", style: "cancel" },
+                        { text: "Yes, Done", onPress: () => {
+                            vibrate([20, 50, 20]);
+                            const todayStr = new Date().toDateString();
+                            const updated = [...workouts];
+                            const currentWorkout = updated[currentWorkoutIndex];
+                            currentWorkout.lastCompleted = Date.now();
+                            currentWorkout.exercises = currentWorkout.exercises.map(ex => {
+                                const newEntry = { date: Date.now(), topWeight: ex.topWeight, topReps: ex.topReps, backWeight: ex.backWeight, backReps: ex.backReps };
+                                let newHistory = [...(ex.history || [])];
+                                if (newHistory.length > 0) {
+                                    const lastEntry = newHistory[newHistory.length - 1];
+                                    if (new Date(lastEntry.date).toDateString() === todayStr) newHistory[newHistory.length - 1] = newEntry; 
+                                    else newHistory.push(newEntry); 
+                                } else newHistory.push(newEntry); 
+                                return { ...ex, history: newHistory };
+                            });
+                            setWorkouts(updated);
+                        }}
+                    ]
+                });
             };
 
             const handleSave = () => {
@@ -380,19 +646,19 @@
                 
                 if (modalMode === 'create-workout') {
                     if (!workoutTitle.trim()) return;
-                    const newW = { id: Math.random().toString(), title: workoutTitle, color: workoutColor, exercises: [] };
+                    const newW = { id: Math.random().toString(), title: workoutTitle, color: workoutColor, bgColor: workoutBgColor, exercises: [] };
                     setWorkouts([...workouts, newW]); setCurrentWorkoutIndex(workouts.length);
                 } else if (modalMode === 'edit-workout') {
                     if (!workoutTitle.trim()) return;
-                    current.title = workoutTitle; current.color = workoutColor;
+                    current.title = workoutTitle; current.color = workoutColor; current.bgColor = workoutBgColor;
                     setWorkouts(updated);
                 } else {
                     if (!newExercise.name) return;
-                    const exData = { name: newExercise.name, weight: newExercise.weight || '0', reps: newExercise.reps || '0', minReps: newExercise.minReps, maxReps: newExercise.maxReps };
+                    const exData = { name: newExercise.name, topWeight: newExercise.topWeight || '0', topReps: newExercise.topReps || '0', backWeight: newExercise.backWeight || '0', backReps: newExercise.backReps || '0', topMinReps: newExercise.topMinReps, topMaxReps: newExercise.topMaxReps, backMinReps: newExercise.backMinReps, backMaxReps: newExercise.backMaxReps, incrementType: newExercise.incrementType, customIncrement: newExercise.incrementType === 'custom' ? newExercise.customIncrement : '' };
                     if (editingId) {
                         current.exercises = current.exercises.map(ex => ex.id === editingId ? { ...ex, ...exData } : ex);
                     } else {
-                        current.exercises.push({ id: Math.random().toString(), ...exData, isExpanded: false });
+                        current.exercises.push({ id: Math.random().toString(), ...exData, isExpanded: false, history: [] });
                     }
                     setWorkouts(updated);
                 }
@@ -417,15 +683,26 @@
                 setWorkouts(workouts.map((w, i) => i === currentWorkoutIndex ? { ...w, exercises: w.exercises.map(e => ({ ...e, isExpanded: e.id === id ? !e.isExpanded : e.isExpanded })) } : w));
             };
 
-            const updateStats = (id, type, inc) => {
+            const updateStats = (id, setType, statType, inc) => {
                 vibrate(10);
                 setWorkouts(workouts.map((w, i) => i === currentWorkoutIndex ? {
                     ...w, exercises: w.exercises.map(e => {
                         if (e.id !== id) return e;
-                        const val = parseFloat(type === 'weight' ? e.weight : e.reps) || 0;
-                        const newVal = val + inc;
-                        const fmt = Number.isInteger(newVal) ? newVal.toString() : newVal.toFixed(1);
-                        return type === 'weight' ? { ...e, weight: fmt, reps: e.minReps.toString() } : { ...e, reps: fmt };
+                        if (setType === 'top') {
+                            if (statType === 'weight') {
+                                const val = (parseFloat(e.topWeight.replace(',', '.')) || 0) + inc;
+                                return { ...e, topWeight: Number.isInteger(val) ? val.toString() : val.toFixed(1).replace('.', ','), topReps: e.topMinReps.toString() };
+                            } else {
+                                return { ...e, topReps: ((parseFloat(e.topReps) || 0) + inc).toString() };
+                            }
+                        } else {
+                            if (statType === 'weight') {
+                                const val = (parseFloat(e.backWeight.replace(',', '.')) || 0) + inc;
+                                return { ...e, backWeight: Number.isInteger(val) ? val.toString() : val.toFixed(1).replace('.', ','), backReps: e.backMinReps.toString() };
+                            } else {
+                                return { ...e, backReps: ((parseFloat(e.backReps) || 0) + inc).toString() };
+                            }
+                        }
                     })
                 } : w));
             };
@@ -433,7 +710,7 @@
             const isYellowBg = currentBgColor === '#FFD700';
 
             return (
-                <div className="flex flex-col h-screen max-w-[500px] mx-auto relative overflow-hidden">
+                <div className="flex flex-col h-[100dvh] max-w-[500px] mx-auto relative overflow-hidden">
                     
                     <div className="flex justify-end px-[25px] pt-[15px] -mb-[15px] z-10">
                         <button onClick={openSettingsModal} className="p-1 active:opacity-50 transition-opacity">
@@ -455,30 +732,26 @@
 
                     <div className="flex-1 overflow-y-auto pb-32 pt-5 no-scrollbar px-5">
                         {activeWorkout.exercises.map(ex => (
-                            <ExerciseCard key={ex.id} data={ex} activeWorkout={activeWorkout} currentBgColor={currentBgColor} onEdit={openEditModal} onToggle={toggleExpand} onUpdateStats={updateStats} />
+                            <ExerciseCard key={ex.id} data={ex} activeWorkout={activeWorkout} currentBgColor={currentBgColor} onEdit={openEditModal} onToggle={toggleExpand} onUpdateStats={updateStats} onOpenGraph={(data) => { setSelectedGraphExercise(data); setGraphModalVisible(true); }} />
                         ))}
-                        {activeWorkout.exercises.length === 0 && (
-                            <div className="text-gray-500 text-center mt-20 italic">No exercises yet.</div>
-                        )}
                     </div>
 
                     <div className={`absolute bottom-[130px] left-1/2 transform -translate-x-1/2 bg-black/60 px-5 py-2 rounded-full backdrop-blur-sm pointer-events-none transition-opacity duration-500 z-40 ${showToast ? 'opacity-100' : 'opacity-0'}`}>
                         <span className="text-white font-bold">Saved</span>
                     </div>
 
-                    {isCooldownEnabled && (
-                        <button onClick={markWorkoutComplete} className="absolute left-6 bottom-10 w-[70px] h-[70px] rounded-full flex items-center justify-center shadow-xl active:scale-90 transition-transform z-30" style={{ backgroundColor: activeWorkout.color }}>
-                            <Icon name="check-check" size={32} color="white" />
-                        </button>
-                    )}
+                    <button onClick={markWorkoutComplete} className="absolute left-6 bottom-10 w-[70px] h-[70px] rounded-full flex items-center justify-center shadow-xl active:scale-90 transition-transform z-30" style={{ backgroundColor: activeWorkout.color }}>
+                        <Icon name="check-check" size={32} color="white" />
+                    </button>
 
                     <button onClick={openAddModal} className="absolute right-6 bottom-10 w-[70px] h-[70px] rounded-full flex items-center justify-center shadow-xl active:scale-90 transition-transform z-30" style={{ backgroundColor: activeWorkout.color }}>
                         <Icon name="plus" size={40} color="white" />
                     </button>
 
+                    {/* Main Editor Modal */}
                     {modalVisible && (
                         <div className="fixed inset-0 bg-black/80 z-50 flex items-end justify-center animate-fade-in px-2 sm:px-0">
-                            <div className="w-full max-w-[500px] rounded-t-[30px] p-[30px] pb-12 animate-slide-up border-t border-white/10" style={{ backgroundColor: currentBgColor }}>
+                            <div className="w-full max-w-[500px] rounded-t-[30px] p-[30px] pb-12 animate-slide-up border-t border-white/10 flex flex-col max-h-[90vh]" style={{ backgroundColor: currentBgColor }}>
                                 {showDeleteConfirm ? (
                                     <div className="flex flex-col items-center py-4">
                                         <Icon name="alert-triangle" size={50} color="#FF4444" className="mb-4" />
@@ -501,6 +774,7 @@
                                             <div className="w-8"></div>
                                         </div>
 
+                                        <div className="flex-1 overflow-y-auto no-scrollbar">
                                         {modalMode === 'settings' ? (
                                             <>
                                                 <div className="flex justify-between items-center bg-[#2A2E4D] px-4 py-3 rounded-xl mb-3">
@@ -514,6 +788,14 @@
                                                         <p className="text-gray-300 text-sm text-center mb-4 leading-snug">The days it takes a completed workout to go Red → Yellow → Green → Default Blue.</p>
                                                     </>
                                                 )}
+                                                <div className="mt-6 pt-5 border-t border-white/10">
+                                                    <div className={`text-sm font-bold mb-3 ${isYellowBg ? 'text-gray-700' : 'text-gray-400'}`}>Data Backup</div>
+                                                    <div className="flex gap-4 mb-2">
+                                                        <button onClick={handleExportData} className="flex-1 bg-[#2A2E4D] flex justify-center items-center gap-2 py-3 rounded-xl active:opacity-70 text-white font-bold"><Icon name="cloud-upload" size={20} color="white"/> Export</button>
+                                                        <button onClick={handleImportData} className="flex-1 bg-[#2A2E4D] flex justify-center items-center gap-2 py-3 rounded-xl active:opacity-70 text-white font-bold"><Icon name="cloud-download" size={20} color="white"/> Import</button>
+                                                    </div>
+                                                    <p className="text-gray-300 text-sm text-center leading-snug mt-2">Save or restore your workouts and history as a file to your device.</p>
+                                                </div>
                                             </>
                                         ) : (modalMode === 'create-workout' || modalMode === 'edit-workout') ? (
                                             <>
@@ -522,23 +804,58 @@
                                                     <div className={`text-sm font-bold mb-2 ${isYellowBg ? 'text-gray-700' : 'text-gray-400'}`}>Theme Color</div>
                                                     <div className="flex justify-between">
                                                         {WORKOUT_COLORS.map(c => (
-                                                            <button key={c} onClick={() => { vibrate(10); setWorkoutColor(c); }} className={`w-10 h-10 rounded-full transition-transform ${workoutColor === c ? 'scale-110 border-2 border-white' : ''}`} style={{ backgroundColor: c }} />
+                                                            <button key={c} onClick={() => { vibrate(10); setWorkoutColor(c); }} className={`w-10 h-10 rounded-full transition-transform ${workoutColor === c ? 'scale-110 border-2 border-white' : 'border border-white/20'}`} style={{ backgroundColor: c }} />
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div className="mb-6">
+                                                    <div className={`text-sm font-bold mb-2 mt-2 ${isYellowBg ? 'text-gray-700' : 'text-gray-400'}`}>Background Color</div>
+                                                    <div className="flex justify-start gap-4">
+                                                        {WORKOUT_BG_COLORS.map(c => (
+                                                            <button key={c} onClick={() => { vibrate(10); setWorkoutBgColor(c); }} className={`w-10 h-10 rounded-full transition-transform ${workoutBgColor === c ? 'scale-110 border-2 border-white' : 'border border-white/20'}`} style={{ backgroundColor: c }} />
                                                         ))}
                                                     </div>
                                                 </div>
                                             </>
                                         ) : (
-                                            <>
+                                            <div className="pb-4">
                                                 <input className="w-full bg-[#2A2E4D] text-white p-4 rounded-xl mb-4 text-lg" placeholder="Exercise Name" value={newExercise.name} onChange={e => setNewExercise({...newExercise, name: e.target.value})} />
-                                                <div className="flex gap-4 mb-4">
-                                                    <input className="flex-1 bg-[#2A2E4D] text-white p-4 rounded-xl text-lg" type="number" placeholder="Weight" value={newExercise.weight} onChange={e => setNewExercise({...newExercise, weight: e.target.value})} />
-                                                    <input className="flex-1 bg-[#2A2E4D] text-white p-4 rounded-xl text-lg" type="number" placeholder="Reps" value={newExercise.reps} onChange={e => setNewExercise({...newExercise, reps: e.target.value})} />
+                                                
+                                                <div className={`text-sm font-bold mb-2 ${isYellowBg ? 'text-gray-700' : 'text-gray-400'}`}>Progression Type</div>
+                                                <div className="flex gap-2 mb-4">
+                                                    {['compound', 'isolation', 'custom'].map(type => (
+                                                        <button key={type} onClick={() => setNewExercise({...newExercise, incrementType: type})} className={`flex-1 py-3 rounded-xl font-bold text-[14px] ${newExercise.incrementType === type ? 'text-[#111534]' : 'bg-[#2A2E4D] text-[#888]'}`} style={newExercise.incrementType === type ? {backgroundColor: workoutColor} : {}}>
+                                                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                                                        </button>
+                                                    ))}
                                                 </div>
-                                                <div className={`text-sm font-bold mb-2 ${isYellowBg ? 'text-gray-700' : 'text-gray-400'}`}>Target Range: {newExercise.minReps} - {newExercise.maxReps}</div>
-                                                <RepRangeSelector min={newExercise.minReps} max={newExercise.maxReps} color={workoutColor} onRangeChange={(min, max) => setNewExercise({ ...newExercise, minReps: min, maxReps: max })} />
-                                            </>
+
+                                                {newExercise.incrementType === 'custom' && (
+                                                    <input className="w-full bg-[#2A2E4D] text-white p-4 rounded-xl mb-4 text-lg" type="number" placeholder="Custom Kg Increment (e.g. 1.5)" value={newExercise.customIncrement} onChange={e => setNewExercise({...newExercise, customIncrement: e.target.value})} />
+                                                )}
+
+                                                <div className={`text-sm font-bold mb-2 ${isYellowBg ? 'text-gray-700' : 'text-gray-400'}`}>Top Set</div>
+                                                <div className="flex gap-2 mb-4">
+                                                    <input className="flex-1 bg-[#2A2E4D] text-white p-4 rounded-xl text-lg" type="number" placeholder="Weight" value={newExercise.topWeight} onChange={e => setNewExercise({...newExercise, topWeight: e.target.value})} />
+                                                    <input className="flex-1 bg-[#2A2E4D] text-white p-4 rounded-xl text-lg" type="number" placeholder="Reps" value={newExercise.topReps} onChange={e => setNewExercise({...newExercise, topReps: e.target.value})} />
+                                                </div>
+
+                                                <div className={`text-sm font-bold mb-2 -mt-1 ${isYellowBg ? 'text-gray-700' : 'text-gray-400'}`}>Target Range: {newExercise.topMinReps} - {newExercise.topMaxReps}</div>
+                                                <div className="mb-6"><RepRangeSelector min={newExercise.topMinReps} max={newExercise.topMaxReps} color={workoutColor} onRangeChange={(min, max) => setNewExercise({ ...newExercise, topMinReps: min, topMaxReps: max })} /></div>
+
+                                                <div className={`text-sm font-bold mb-2 ${isYellowBg ? 'text-gray-700' : 'text-gray-400'}`}>Back-off Set</div>
+                                                <div className="flex gap-2 mb-4">
+                                                    <input className="flex-1 bg-[#2A2E4D] text-white p-4 rounded-xl text-lg" type="number" placeholder="Weight" value={newExercise.backWeight} onChange={e => setNewExercise({...newExercise, backWeight: e.target.value})} />
+                                                    <input className="flex-1 bg-[#2A2E4D] text-white p-4 rounded-xl text-lg" type="number" placeholder="Reps" value={newExercise.backReps} onChange={e => setNewExercise({...newExercise, backReps: e.target.value})} />
+                                                </div>
+
+                                                <div className={`text-sm font-bold mb-2 -mt-1 ${isYellowBg ? 'text-gray-700' : 'text-gray-400'}`}>Target Range: {newExercise.backMinReps} - {newExercise.backMaxReps}</div>
+                                                <div className="mb-2"><RepRangeSelector min={newExercise.backMinReps} max={newExercise.backMaxReps} color={workoutColor} activeOpacity={0.8} onRangeChange={(min, max) => setNewExercise({ ...newExercise, backMinReps: min, backMaxReps: max })} /></div>
+                                            </div>
                                         )}
-                                        <div className="flex gap-4 mt-8">
+                                        </div>
+                                        
+                                        <div className="flex gap-4 mt-4 pt-2">
                                             <button onClick={() => setModalVisible(false)} className="flex-1 p-4 rounded-xl border-2 font-bold" style={{ borderColor: workoutColor, color: workoutColor }}>Cancel</button>
                                             <button onClick={handleSave} className="flex-1 p-4 rounded-xl font-bold text-[#111534]" style={{ backgroundColor: workoutColor }}>Save</button>
                                         </div>
@@ -547,6 +864,50 @@
                             </div>
                         </div>
                     )}
+
+                    {/* Progress Chart Modal */}
+                    {graphModalVisible && selectedGraphExercise && (
+                        <div className="fixed inset-0 bg-black/85 z-[60] flex items-center justify-center animate-fade-in px-4">
+                            <div className="w-full max-w-[460px] rounded-[25px] p-5 border border-white/10 shadow-2xl" style={{ backgroundColor: currentBgColor }}>
+                                <div className="flex justify-between items-center mb-2">
+                                    <h2 className="text-white text-xl font-bold">{selectedGraphExercise.name}</h2>
+                                    <button onClick={() => setGraphModalVisible(false)} className="p-1"><Icon name="close" color="white" /></button>
+                                </div>
+                                <ProgressChart history={selectedGraphExercise.history} bgColor={currentBgColor} />
+                                <div className="flex justify-center gap-5 mt-2 pt-4 border-t border-white/10">
+                                    <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-[#F28C42]"></div><span className="text-white text-[13px] opacity-80">Top Set</span></div>
+                                    <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-[#42D4F2] opacity-60"></div><span className="text-white text-[13px] opacity-80">Back-off Set</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Unified Custom Alert Modal */}
+                    {customAlert.visible && (
+                        <div className="fixed inset-0 bg-black/85 z-[70] flex items-center justify-center animate-fade-in px-4">
+                            <div className="w-full max-w-[340px] bg-[#1A1F4B] rounded-[25px] p-6 flex flex-col items-center border border-white/5 shadow-2xl">
+                                <h3 className="text-white text-xl font-bold mb-3 text-center">{customAlert.title}</h3>
+                                <p className="text-white/70 text-[15px] text-center mb-6 leading-relaxed">{customAlert.message}</p>
+                                <div className="flex gap-3 w-full">
+                                    {customAlert.buttons.map((btn, idx) => {
+                                        const isCancel = btn.style === 'cancel';
+                                        const isDestruct = btn.style === 'destructive';
+                                        return (
+                                            <button 
+                                                key={idx} 
+                                                onClick={() => { if(btn.onPress) btn.onPress(); closeCustomAlert(); }} 
+                                                className={`flex-1 py-3.5 rounded-xl font-bold text-[15px] transition-opacity active:opacity-70 ${isCancel ? 'bg-transparent border border-white/30 text-white' : isDestruct ? 'bg-[#FF4444] text-white' : 'text-[#111534]'}`}
+                                                style={(!isCancel && !isDestruct) ? { backgroundColor: activeWorkout.color } : {}}
+                                            >
+                                                {btn.text}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                 </div>
             );
         };
