@@ -216,7 +216,7 @@
                             const isInRange = num > min && num < max;
                             const isActive = isMin || isMax || isInRange;
                             return (
-                                <div key={num} onClick={() => handlePress(num)} className="flex-1 h-full flex items-center justify-center relative cursor-pointer">
+                                <div key={num} onClick={() => handlePress(num)} className="flex-1 min-w-0 h-full flex items-center justify-center relative cursor-pointer">
                                     {(isMin || isMax) && (
                                         <div style={{ position: 'absolute', width: '40px', height: '40px', backgroundColor: color, opacity: activeOpacity, borderRadius: '50%', zIndex: -1 }}></div>
                                     )}
@@ -347,7 +347,6 @@
                             <div {...longPressProps} className="w-[45%] h-full flex items-center pl-[20px] pr-[10px] cursor-pointer active:opacity-80">
                                 <span className="text-[#111534] text-[18px] font-bold line-clamp-2 leading-tight">{data.name}</span>
                             </div>
-                            {/* Adjusted Layout Padding for bigger numbers */}
                             <div onClick={() => onToggle(data.id)} className="w-[55%] h-full flex flex-col justify-center pl-[45px] pr-[15px] cursor-pointer active:opacity-80">
                                 <div className="flex items-center justify-between w-full">
                                     <span className="text-[#111534] text-[12px] font-[800] opacity-50 w-[28px] shrink-0">TOP</span>
@@ -755,8 +754,8 @@
 
                     {/* Main Editor Modal */}
                     {modalVisible && (
-                        <div className="fixed inset-0 bg-black/80 z-50 flex items-end justify-center animate-fade-in px-2 sm:px-0">
-                            <div className="w-full max-w-[500px] rounded-t-[30px] p-[30px] pb-12 animate-slide-up border-t border-white/10 flex flex-col max-h-[90vh]" style={{ backgroundColor: currentBgColor }}>
+                        <div className="fixed inset-0 bg-black/80 z-50 flex items-end justify-center animate-fade-in sm:px-0">
+                            <div className="w-full max-w-[500px] rounded-t-[30px] p-5 sm:p-[30px] pb-12 animate-slide-up border-t border-white/10 flex flex-col max-h-[90vh]" style={{ backgroundColor: currentBgColor }}>
                                 {showDeleteConfirm ? (
                                     <div className="flex flex-col items-center py-4">
                                         <Icon name="alert-triangle" size={50} color="#FF4444" className="mb-4" />
@@ -779,10 +778,10 @@
                                             <div className="w-8"></div>
                                         </div>
 
-                                        <div className="flex-1 overflow-y-auto no-scrollbar">
+                                        <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar w-full">
                                         {modalMode === 'settings' ? (
                                             <>
-                                                <div className="flex justify-between items-center bg-[#2A2E4D] px-4 py-3 rounded-xl mb-3">
+                                                <div className="flex justify-between items-center bg-[#2A2E4D] px-4 py-3 rounded-xl mb-3 w-full">
                                                     <span className="text-white text-[16px] font-medium">Recovery Color Coding</span>
                                                     <ToggleSwitch checked={tempCooldownEnabled} onChange={setTempCooldownEnabled} activeColor={activeWorkout.color} />
                                                 </div>
@@ -793,11 +792,11 @@
                                                         <p className="text-gray-300 text-sm text-center mb-4 leading-snug">The days it takes a completed workout to go Red → Yellow → Green → Default Blue.</p>
                                                     </>
                                                 )}
-                                                <div className="mt-6 pt-5 border-t border-white/10">
+                                                <div className="mt-6 pt-5 border-t border-white/10 w-full">
                                                     <div className={`text-sm font-bold mb-3 ${isYellowBg ? 'text-gray-700' : 'text-gray-400'}`}>Data Backup</div>
-                                                    <div className="flex gap-4 mb-2">
-                                                        <button onClick={handleExportData} className="flex-1 bg-[#2A2E4D] flex justify-center items-center gap-2 py-3 rounded-xl active:opacity-70 text-white font-bold"><Icon name="cloud-upload" size={20} color="white"/> Export</button>
-                                                        <button onClick={handleImportData} className="flex-1 bg-[#2A2E4D] flex justify-center items-center gap-2 py-3 rounded-xl active:opacity-70 text-white font-bold"><Icon name="cloud-download" size={20} color="white"/> Import</button>
+                                                    <div className="flex gap-4 mb-2 w-full">
+                                                        <button onClick={handleExportData} className="flex-1 min-w-0 bg-[#2A2E4D] flex justify-center items-center gap-2 py-3 rounded-xl active:opacity-70 text-white font-bold"><Icon name="cloud-upload" size={20} color="white"/> Export</button>
+                                                        <button onClick={handleImportData} className="flex-1 min-w-0 bg-[#2A2E4D] flex justify-center items-center gap-2 py-3 rounded-xl active:opacity-70 text-white font-bold"><Icon name="cloud-download" size={20} color="white"/> Import</button>
                                                     </div>
                                                     <p className="text-gray-300 text-sm text-center leading-snug mt-2">Save or restore your workouts and history as a file to your device.</p>
                                                 </div>
@@ -807,7 +806,7 @@
                                                 <input className="w-full bg-[#2A2E4D] text-white p-4 rounded-xl mb-4 text-lg" placeholder="Workout Name" value={workoutTitle} onChange={e => setWorkoutTitle(e.target.value)} autoFocus />
                                                 <div className="mb-6">
                                                     <div className={`text-sm font-bold mb-2 ${isYellowBg ? 'text-gray-700' : 'text-gray-400'}`}>Theme Color</div>
-                                                    <div className="flex justify-between">
+                                                    <div className="flex justify-between w-full">
                                                         {WORKOUT_COLORS.map(c => (
                                                             <button key={c} onClick={() => { vibrate(10); setWorkoutColor(c); }} className={`w-10 h-10 rounded-full transition-transform ${workoutColor === c ? 'scale-110 border-2 border-white' : 'border border-white/20'}`} style={{ backgroundColor: c }} />
                                                         ))}
@@ -815,7 +814,7 @@
                                                 </div>
                                                 <div className="mb-6">
                                                     <div className={`text-sm font-bold mb-2 mt-2 ${isYellowBg ? 'text-gray-700' : 'text-gray-400'}`}>Background Color</div>
-                                                    <div className="flex justify-start gap-4">
+                                                    <div className="flex justify-start gap-4 w-full">
                                                         {WORKOUT_BG_COLORS.map(c => (
                                                             <button key={c} onClick={() => { vibrate(10); setWorkoutBgColor(c); }} className={`w-10 h-10 rounded-full transition-transform ${workoutBgColor === c ? 'scale-110 border-2 border-white' : 'border border-white/20'}`} style={{ backgroundColor: c }} />
                                                         ))}
@@ -823,13 +822,13 @@
                                                 </div>
                                             </>
                                         ) : (
-                                            <div className="pb-4">
+                                            <div className="pb-4 w-full">
                                                 <input className="w-full bg-[#2A2E4D] text-white p-4 rounded-xl mb-4 text-lg" placeholder="Exercise Name" value={newExercise.name} onChange={e => setNewExercise({...newExercise, name: e.target.value})} />
                                                 
                                                 <div className={`text-sm font-bold mb-2 ${isYellowBg ? 'text-gray-700' : 'text-gray-400'}`}>Progression Type</div>
-                                                <div className="flex gap-2 mb-4">
+                                                <div className="flex gap-2 mb-4 w-full">
                                                     {['compound', 'isolation', 'custom'].map(type => (
-                                                        <button key={type} onClick={() => setNewExercise({...newExercise, incrementType: type})} className={`flex-1 py-3 rounded-xl font-bold text-[14px] ${newExercise.incrementType === type ? 'text-[#111534]' : 'bg-[#2A2E4D] text-[#888]'}`} style={newExercise.incrementType === type ? {backgroundColor: workoutColor} : {}}>
+                                                        <button key={type} onClick={() => setNewExercise({...newExercise, incrementType: type})} className={`flex-1 min-w-0 truncate px-1 py-3 rounded-xl font-bold text-[14px] ${newExercise.incrementType === type ? 'text-[#111534]' : 'bg-[#2A2E4D] text-[#888]'}`} style={newExercise.incrementType === type ? {backgroundColor: workoutColor} : {}}>
                                                             {type.charAt(0).toUpperCase() + type.slice(1)}
                                                         </button>
                                                     ))}
@@ -840,18 +839,18 @@
                                                 )}
 
                                                 <div className={`text-sm font-bold mb-2 ${isYellowBg ? 'text-gray-700' : 'text-gray-400'}`}>Top Set</div>
-                                                <div className="flex gap-2 mb-4">
-                                                    <input className="flex-1 bg-[#2A2E4D] text-white p-4 rounded-xl text-lg" type="number" placeholder="Weight" value={newExercise.topWeight} onChange={e => setNewExercise({...newExercise, topWeight: e.target.value})} />
-                                                    <input className="flex-1 bg-[#2A2E4D] text-white p-4 rounded-xl text-lg" type="number" placeholder="Reps" value={newExercise.topReps} onChange={e => setNewExercise({...newExercise, topReps: e.target.value})} />
+                                                <div className="flex gap-3 mb-4 w-full">
+                                                    <input className="flex-[2] w-full min-w-0 bg-[#2A2E4D] text-white p-4 rounded-xl text-lg" type="number" placeholder="Weight" value={newExercise.topWeight} onChange={e => setNewExercise({...newExercise, topWeight: e.target.value})} />
+                                                    <input className="flex-1 w-full min-w-0 bg-[#2A2E4D] text-white p-4 rounded-xl text-lg text-center" type="number" placeholder="Reps" value={newExercise.topReps} onChange={e => setNewExercise({...newExercise, topReps: e.target.value})} />
                                                 </div>
 
                                                 <div className={`text-sm font-bold mb-2 -mt-1 ${isYellowBg ? 'text-gray-700' : 'text-gray-400'}`}>Target Range: {newExercise.topMinReps} - {newExercise.topMaxReps}</div>
                                                 <div className="mb-6"><RepRangeSelector min={newExercise.topMinReps} max={newExercise.topMaxReps} color={workoutColor} onRangeChange={(min, max) => setNewExercise({ ...newExercise, topMinReps: min, topMaxReps: max })} /></div>
 
                                                 <div className={`text-sm font-bold mb-2 ${isYellowBg ? 'text-gray-700' : 'text-gray-400'}`}>Back-off Set</div>
-                                                <div className="flex gap-2 mb-4">
-                                                    <input className="flex-1 bg-[#2A2E4D] text-white p-4 rounded-xl text-lg" type="number" placeholder="Weight" value={newExercise.backWeight} onChange={e => setNewExercise({...newExercise, backWeight: e.target.value})} />
-                                                    <input className="flex-1 bg-[#2A2E4D] text-white p-4 rounded-xl text-lg" type="number" placeholder="Reps" value={newExercise.backReps} onChange={e => setNewExercise({...newExercise, backReps: e.target.value})} />
+                                                <div className="flex gap-3 mb-4 w-full">
+                                                    <input className="flex-[2] w-full min-w-0 bg-[#2A2E4D] text-white p-4 rounded-xl text-lg" type="number" placeholder="Weight" value={newExercise.backWeight} onChange={e => setNewExercise({...newExercise, backWeight: e.target.value})} />
+                                                    <input className="flex-1 w-full min-w-0 bg-[#2A2E4D] text-white p-4 rounded-xl text-lg text-center" type="number" placeholder="Reps" value={newExercise.backReps} onChange={e => setNewExercise({...newExercise, backReps: e.target.value})} />
                                                 </div>
 
                                                 <div className={`text-sm font-bold mb-2 -mt-1 ${isYellowBg ? 'text-gray-700' : 'text-gray-400'}`}>Target Range: {newExercise.backMinReps} - {newExercise.backMaxReps}</div>
@@ -860,9 +859,9 @@
                                         )}
                                         </div>
                                         
-                                        <div className="flex gap-4 mt-4 pt-2">
-                                            <button onClick={() => setModalVisible(false)} className="flex-1 p-4 rounded-xl border-2 font-bold" style={{ borderColor: workoutColor, color: workoutColor }}>Cancel</button>
-                                            <button onClick={handleSave} className="flex-1 p-4 rounded-xl font-bold text-[#111534]" style={{ backgroundColor: workoutColor }}>Save</button>
+                                        <div className="flex gap-4 mt-4 pt-2 w-full">
+                                            <button onClick={() => setModalVisible(false)} className="flex-1 min-w-0 p-4 rounded-xl border-2 font-bold" style={{ borderColor: workoutColor, color: workoutColor }}>Cancel</button>
+                                            <button onClick={handleSave} className="flex-1 min-w-0 p-4 rounded-xl font-bold text-[#111534]" style={{ backgroundColor: workoutColor }}>Save</button>
                                         </div>
                                     </>
                                 )}
@@ -901,7 +900,7 @@
                                             <button 
                                                 key={idx} 
                                                 onClick={() => { if(btn.onPress) btn.onPress(); closeCustomAlert(); }} 
-                                                className={`flex-1 py-3.5 rounded-xl font-bold text-[15px] transition-opacity active:opacity-70 ${isCancel ? 'bg-transparent border border-white/30 text-white' : isDestruct ? 'bg-[#FF4444] text-white' : 'text-[#111534]'}`}
+                                                className={`flex-1 min-w-0 py-3.5 rounded-xl font-bold text-[15px] transition-opacity active:opacity-70 ${isCancel ? 'bg-transparent border border-white/30 text-white' : isDestruct ? 'bg-[#FF4444] text-white' : 'text-[#111534]'}`}
                                                 style={(!isCancel && !isDestruct) ? { backgroundColor: activeWorkout.color } : {}}
                                             >
                                                 {btn.text}
